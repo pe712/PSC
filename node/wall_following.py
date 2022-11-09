@@ -20,10 +20,10 @@ CAR_LENGTH = 0.50 # Traxxas Rally is 20 inches or 0.5 meters
 
 class WallFollow:
     #PID CONTROL PARAMS
-    ku = 1.15
+    ku = 4
     tu = 1.2 # sec
-    kp = 5 # 0.8*ku
-    ki = 0*ku/tu
+    kp = 3.6
+    ki = 0.001
     kd = 0*ku*tu
     """ 
     kp = 5
@@ -55,7 +55,7 @@ class WallFollow:
         derivative = (error - self.prev_error)/delta
         self.last_callback = rospy.get_time()
         self.prev_error = error
-        angle = self.kp * error + self.ki*derivative + self.kd*derivative
+        angle = self.kp * error + self.ki*self.integral + self.kd*derivative
         drive_msg = AckermannDriveStamped()
         drive_msg.header.stamp = rospy.Time.now()
         drive_msg.header.frame_id = "laser"
