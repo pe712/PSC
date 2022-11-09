@@ -5,5 +5,5 @@
     <!-- launch AEB to prevent collision -->
     <node name="AEB" pkg="f1tenth_simulator" type="AEB.py"></node>
     <!-- launch wall following algorithm -->
-  <!--   <node name="wall_following" pkg="f1tenth_simulator" type="wall_following.py"></node> -->
+    <!-- <node name="wall_following" pkg="f1tenth_simulator" type="wall_following.py"></node> -->
 </launch>
