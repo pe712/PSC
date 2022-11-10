@@ -22,9 +22,9 @@ class WallFollow:
     #PID CONTROL PARAMS
     ku = 4
     tu = 1.2 # sec
-    kp = 3.6
-    ki = 0.001
-    kd = 0*ku*tu
+    kp = 3.2
+    ki = 0.0 # 0.005
+    kd = 0.004
     """ 
     kp = 5
     kd = 0.09
@@ -50,7 +50,8 @@ class WallFollow:
         return data.ranges[k]
 
     def pid_control(self, error):
-        self.integral += error
+        if abs(self.integral)<100:
+            self.integral+=error
         delta = rospy.get_time() - self.last_callback
         derivative = (error - self.prev_error)/delta
         self.last_callback = rospy.get_time()
@@ -67,7 +68,8 @@ class WallFollow:
         else:
             self.velocity = VELOCITY /3
         drive_msg.drive.speed = self.velocity
-        print("derivative: "+str(derivative) + " integral "+str(self.integral) + " angle: " + str(angle) +" delta "+str(delta))
+        # print("derivative: "+str(derivative) + " integral "+str(self.integral) + " angle: " + str(angle) +" delta "+str(delta))
+        print("D: "+str(self.kd*derivative) + " I "+str(self.ki*self.integral) + " P: " + str(self.kp * error))
         self.drive_pub.publish(drive_msg)
 
     def followLeft(self, data):
@@ -82,7 +84,7 @@ class WallFollow:
         L = VELOCITY*self.average_delta_callback
         D_t1 = D_t + L*sin(alpha)
         error = DESIRED_DISTANCE_RIGHT - D_t1
-        print("a: "+str(a)+" b: "+str(b)+" D_t:"+str(D_t) + " error: "+str(error))
+        # print("a: "+str(a)+" b: "+str(b)+" D_t:"+str(D_t) + " error: "+str(error))
         return error
         
     def lidar_callback(self, data):
