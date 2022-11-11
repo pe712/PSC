@@ -69,7 +69,7 @@ class WallFollow:
             self.velocity = VELOCITY /3
         drive_msg.drive.speed = self.velocity
         # print("derivative: "+str(derivative) + " integral "+str(self.integral) + " angle: " + str(angle) +" delta "+str(delta))
-        print("D: "+str(self.kd*derivative) + " I "+str(self.ki*self.integral) + " P: " + str(self.kp * error))
+        # print("D: "+str(self.kd*derivative) + " I "+str(self.ki*self.integral) + " P: " + str(self.kp * error))
         self.drive_pub.publish(drive_msg)
 
     def followLeft(self, data):
