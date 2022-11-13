@@ -10,22 +10,36 @@ from sensor_msgs.msg import Image, LaserScan
 from ackermann_msgs.msg import AckermannDriveStamped, AckermannDrive
 
 class reactive_follow_gap:
+    gap_distance = 0.5
     def __init__(self):
         #Topics & Subscriptions,Publishers
         lidarscan_topic = '/scan'
         drive_topic = '/nav'
 
-        self.lidar_sub = None #TODO
-        self.drive_pub = None #TODO
+        self.lidar_sub = rospy.Subscriber(lidarscan_topic, LaserScan, self.lidar_callback)
+        self.drive_pub = rospy.Publisher(drive_topic, AckermannDriveStamped, queue_size=10)
     
     def preprocess_lidar(self, ranges):
         """ Preprocess the LiDAR scan array. Expert implementation includes:
             1.Setting each value to the mean over some window
             2.Rejecting high values (eg. > 3m)
         """
+        jump_to = 0
+        for k in range(len(ranges)-1):
+            if abs(ranges[k+1]-ranges[k])>self.gap_distance:
+                if ranges[k+1]-ranges[k]>0:
+                    # Gap on the right
+                    gap_sign = 1
+                else:
+                    gap_sign=  -1
+                jump_to = self.avoid_gap(k, gap_sign) # Last index of the barrier created
+        
         proc_ranges = ranges
         return proc_ranges
 
+    def avoid_gap(self, k, gap_sign):
+        return  k
+        
     def find_max_gap(self, free_space_ranges):
         """ Return the start index & end index of the max gap in free_space_ranges
         """
