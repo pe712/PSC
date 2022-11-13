@@ -12,19 +12,13 @@ from tf.transformations import euler_from_quaternion
 from geometry_msgs.msg._Quaternion import Quaternion
 
 CAR_WIDTH = rospy.get_param("f1tenth_simulator/width", 0.0)
-BARRIER_WIDTH = CAR_WIDTH
+BARRIER_WIDTH = CAR_WIDTH*4
 
 class reactive_follow_gap:
-    MAX_VELOCITY = 1.5 # Desired maximum velocity in meters per second
+    MAX_VELOCITY = 4 # Desired maximum velocity in meters per second
     GAP_DISTANCE = 1.5 # Distance in meters between consecutive lidar beams to consider there is an edge here
     MAX_DISTANCE = 40 # The maximum possible distance in the map, greater is an error
-     
-    KP = 0.01
-    KI = 0.0
-    KD = 0.0
-    prev_error = 0.0 
-    integral = 0.0
-    velocity = 0.0
+    MAX_ROT = pi/2 #the maximum rotation allowed to avoid going backward
     n=0
     def __init__(self):
         #Topics & Subscriptions,Publishers
@@ -41,15 +35,16 @@ class reactive_follow_gap:
             1.Setting each value to the mean over some window
             2.Rejecting high values (eg. > 3m)
         """
-        # TODO only check between -pi/2 and pi/2
+        self.start_i = int((-self.MAX_ROT-data.angle_min)/data.angle_increment)
+        self.stop_i = int((self.MAX_ROT-data.angle_min)/data.angle_increment)
         jump_to = 0
         ranges = list(data.ranges)
-        for k in range(len(ranges)-1):
+        for k in range(self.start_i, self.stop_i):
             angle_start = data.angle_min + data.angle_increment * k
             if ranges[k]>self.MAX_DISTANCE:
                 # Erreur ou sortie de carte
                 ranges[k] = 0
-                print("beam out of the map at angle "+str(int(degrees(angle_start))))
+                # print("beam out of the map at angle "+str(int(degrees(angle_start))))
             elif k>=jump_to and abs(ranges[k+1]-ranges[k])>self.GAP_DISTANCE:
                 if ranges[k+1]-ranges[k]>0:
                     # Gap on the right
@@ -58,14 +53,14 @@ class reactive_follow_gap:
                 else:
                     edge_sign=  -1
                     start = k+1
-                print(ranges[k], ranges[k+1])
+                # print(ranges[k], ranges[k+1])
                 jump_to = self.avoid_edge(ranges, start, edge_sign, data.angle_increment) # Last index of the barrier created
-                if edge_sign:
-                    print(ranges[start: jump_to])
-                else:
-                    print(ranges[jump_to: start])
+                # if edge_sign:
+                #     print(ranges[start: jump_to])
+                # else:
+                #     print(ranges[jump_to: start])
                 angle_stop = data.angle_min + data.angle_increment * jump_to
-                print("jump from angle "+str(int(degrees(angle_start)))+"deg to angle "+str(int(degrees(angle_stop)))+"deg")
+                # print("jump from angle "+str(int(degrees(angle_start)))+"deg to angle "+str(int(degrees(angle_stop)))+"deg")
         return ranges
 
     def avoid_edge(self, ranges, start, edge_sign, angle_increment):
@@ -90,8 +85,7 @@ class reactive_follow_gap:
         """ Return the start index & end index of the max gap in ranges
         It will look for the deepest gap with a width of at least the car
         """
-        
-        return int((-pi/2-data.angle_min)/data.angle_increment), int((pi/2-data.angle_min)//data.angle_increment)
+        return self.start_i, self.stop_i
     
     def find_best_angle(self, ranges, data):
         """
@@ -99,13 +93,17 @@ class reactive_follow_gap:
 	Naive: Choose the furthest point within ranges and go there
         """
         start, stop = self.find_max_gap(ranges, data)
-        print(start, stop, len(ranges))
         best_index = start
         for k in range(start, stop):
             if ranges[k]>ranges[best_index]:
                 best_index = k
-        print(ranges[best_index], ranges[0])
         angle_to_drive = data.angle_min + data.angle_increment*best_index
+        x = self.x + ranges[best_index]*cos(angle_to_drive+self.angle)
+        y = self.y + ranges[best_index]*sin(angle_to_drive+self.angle)
+        self.create_marker(x, y)
+        return angle_to_drive
+
+    def create_marker(self, x, y):
         marker = Marker()
         marker.header.frame_id = "/map"
         marker.header.stamp = rospy.Time()
@@ -119,28 +117,15 @@ class reactive_follow_gap:
         marker.color.r = 0.0
         marker.color.g = 1.0
         marker.color.b = 0.0
-        marker.pose.position.x = self.x + ranges[best_index]*cos(angle_to_drive+self.angle)
-        marker.pose.position.y = self.y + ranges[best_index]*sin(angle_to_drive+self.angle)
+        marker.pose.position.x = x
+        marker.pose.position.y = y
         marker.pose.orientation = Quaternion()
         self.markerPub.publish(marker)
-        return angle_to_drive
-
-    def pid_control(self, error):
-        # avoid integral to scale infinitely
-        if abs(self.integral)<100:
-            self.integral+=error
-        delta = rospy.get_time() - self.last_callback
-        derivative = (error - self.prev_error)/delta
-        self.last_callback = rospy.get_time()
-        self.prev_error = error
-        angle = self.KP * error + self.KI*self.integral + self.KD*derivative
-        return angle
 
     def publish_drive_msg(self, angle):        
         drive_msg = AckermannDriveStamped()
         drive_msg.header.stamp = rospy.Time.now()
         drive_msg.header.frame_id = "laser"
-        drive_msg.drive.steering_angle_velocity = angle
         drive_msg.drive.steering_angle = angle
         if (abs(angle)<radians(20)):
             self.velocity = self.MAX_VELOCITY
@@ -164,11 +149,8 @@ class reactive_follow_gap:
             self.n=0
             proc_ranges = self.preprocess_lidar(data)
             desired_angle = self.find_best_angle(proc_ranges, data)
-            print("desired angle is "+str(round(degrees(desired_angle), 3)))
-            # angle_to_drive = self.pid_control(desired_angle)
-            angle_to_drive = desired_angle
-            print("steering to "+str(round(degrees(angle_to_drive), 5))+"\n")
-            self.publish_drive_msg(angle_to_drive)
+            self.publish_drive_msg(desired_angle)
+            print("steering to "+str(round(degrees(desired_angle), 5))+"\n")
         else:
             self.n+=1
 
