@@ -1,32 +1,47 @@
 #!/usr/bin/env python
 import sys
-from math import tan, degrees, radians, pi
+from math import tan, degrees, radians, pi, cos, sin
 
 #ROS Imports
 import rospy
 from sensor_msgs.msg import Image, LaserScan
 from ackermann_msgs.msg import AckermannDriveStamped, AckermannDrive
+from visualization_msgs.msg import Marker
+from nav_msgs.msg import Odometry
+from tf.transformations import euler_from_quaternion
+from geometry_msgs.msg._Quaternion import Quaternion
 
 CAR_WIDTH = rospy.get_param("f1tenth_simulator/width", 0.0)
-BARRIER_WIDTH = 0.5 * CAR_WIDTH
+BARRIER_WIDTH = CAR_WIDTH
 
 class reactive_follow_gap:
     MAX_VELOCITY = 1.5 # Desired maximum velocity in meters per second
     GAP_DISTANCE = 1.5 # Distance in meters between consecutive lidar beams to consider there is an edge here
-    MAX_DISTANCE = 20 # The maximum possible distance in the map, greater is an error
-    
+    MAX_DISTANCE = 40 # The maximum possible distance in the map, greater is an error
+     
+    KP = 0.01
+    KI = 0.0
+    KD = 0.0
+    prev_error = 0.0 
+    integral = 0.0
+    velocity = 0.0
+    n=0
     def __init__(self):
         #Topics & Subscriptions,Publishers
         lidarscan_topic = '/scan'
-        drive_topic = '/gap_follow'
+        drive_topic = '/nav'
         self.lidar_sub = rospy.Subscriber(lidarscan_topic, LaserScan, self.lidar_callback)
         self.drive_pub = rospy.Publisher(drive_topic, AckermannDriveStamped, queue_size=10)
+        self.last_callback = rospy.get_time()
+        self.markerPub = rospy.Publisher('/visualization_marker', Marker, queue_size=10)
+        self.odom_sub = rospy.Subscriber("/odom", Odometry, self.callback_odom)
     
     def preprocess_lidar(self, data):
         """ Preprocess the LiDAR scan array. Expert implementation includes:
             1.Setting each value to the mean over some window
             2.Rejecting high values (eg. > 3m)
         """
+        # TODO only check between -pi/2 and pi/2
         jump_to = 0
         ranges = list(data.ranges)
         for k in range(len(ranges)-1):
@@ -43,7 +58,12 @@ class reactive_follow_gap:
                 else:
                     edge_sign=  -1
                     start = k+1
+                print(ranges[k], ranges[k+1])
                 jump_to = self.avoid_edge(ranges, start, edge_sign, data.angle_increment) # Last index of the barrier created
+                if edge_sign:
+                    print(ranges[start: jump_to])
+                else:
+                    print(ranges[jump_to: start])
                 angle_stop = data.angle_min + data.angle_increment * jump_to
                 print("jump from angle "+str(int(degrees(angle_start)))+"deg to angle "+str(int(degrees(angle_stop)))+"deg")
         return ranges
@@ -79,16 +99,48 @@ class reactive_follow_gap:
 	Naive: Choose the furthest point within ranges and go there
         """
         start, stop = self.find_max_gap(ranges, data)
-        best_index = 0
+        print(start, stop, len(ranges))
+        best_index = start
         for k in range(start, stop):
             if ranges[k]>ranges[best_index]:
                 best_index = k
-        return data.angle_min + data.angle_increment*best_index
+        print(ranges[best_index], ranges[0])
+        angle_to_drive = data.angle_min + data.angle_increment*best_index
+        marker = Marker()
+        marker.header.frame_id = "/map"
+        marker.header.stamp = rospy.Time()
+        marker.ns = "my_namespace"
+        marker.type = Marker.CUBE
+        marker.id = 0
+        marker.scale.x = 0.1
+        marker.scale.y = 0.1
+        marker.scale.z = 0.1
+        marker.color.a = 1.0
+        marker.color.r = 0.0
+        marker.color.g = 1.0
+        marker.color.b = 0.0
+        marker.pose.position.x = self.x + ranges[best_index]*cos(angle_to_drive+self.angle)
+        marker.pose.position.y = self.y + ranges[best_index]*sin(angle_to_drive+self.angle)
+        marker.pose.orientation = Quaternion()
+        self.markerPub.publish(marker)
+        return angle_to_drive
+
+    def pid_control(self, error):
+        # avoid integral to scale infinitely
+        if abs(self.integral)<100:
+            self.integral+=error
+        delta = rospy.get_time() - self.last_callback
+        derivative = (error - self.prev_error)/delta
+        self.last_callback = rospy.get_time()
+        self.prev_error = error
+        angle = self.KP * error + self.KI*self.integral + self.KD*derivative
+        return angle
 
     def publish_drive_msg(self, angle):        
         drive_msg = AckermannDriveStamped()
         drive_msg.header.stamp = rospy.Time.now()
         drive_msg.header.frame_id = "laser"
+        drive_msg.drive.steering_angle_velocity = angle
         drive_msg.drive.steering_angle = angle
         if (abs(angle)<radians(20)):
             self.velocity = self.MAX_VELOCITY
@@ -99,13 +151,26 @@ class reactive_follow_gap:
         drive_msg.drive.speed = self.velocity
         self.drive_pub.publish(drive_msg)
 
+    def callback_odom(self, data):
+        self.x = data.pose.pose.position.x
+        self.y = data.pose.pose.position.y
+        o = data.pose.pose.orientation
+        self.angle = euler_from_quaternion([o.x, o.y, o.z, o.w])[2]
+
     def lidar_callback(self, data):
         """ Process each LiDAR scan as per the Follow Gap algorithm & publish an AckermannDriveStamped Message
         """
-        proc_ranges = self.preprocess_lidar(data)
-        desired_angle = self.find_best_angle(proc_ranges, data)
-        print("desired angle is "+str(int(degrees(desired_angle)))+"\n")
-        self.publish_drive_msg(desired_angle)
+        if self.n==0:
+            self.n=0
+            proc_ranges = self.preprocess_lidar(data)
+            desired_angle = self.find_best_angle(proc_ranges, data)
+            print("desired angle is "+str(round(degrees(desired_angle), 3)))
+            # angle_to_drive = self.pid_control(desired_angle)
+            angle_to_drive = desired_angle
+            print("steering to "+str(round(degrees(angle_to_drive), 5))+"\n")
+            self.publish_drive_msg(angle_to_drive)
+        else:
+            self.n+=1
 
 def main(args):
     rospy.init_node("reactive_gap_follow", anonymous=True)
