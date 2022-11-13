@@ -12,23 +12,21 @@ from ackermann_msgs.msg import AckermannDriveStamped, AckermannDrive
 
 
 #WALL FOLLOW PARAMS
-ANGLE_RANGE = 270 # Hokuyo 10LX has 270 degrees scan
 DESIRED_DISTANCE_RIGHT = 0.9 # meters
 DESIRED_DISTANCE_LEFT = 0.55
-VELOCITY = 1.5 # meters per second
-CAR_LENGTH = 0.50 # Traxxas Rally is 20 inches or 0.5 meters
+VELOCITY = 1.5 # desired maximum velocity in meters per second
 
 class WallFollow:
     #PID CONTROL PARAMS
-    ku = 4
-    tu = 1.2 # sec
-    kp = 3.2
-    ki = 0.0 # 0.005
-    kd = 0.004
+    KU = 4
+    TU = 1.2 # sec
+    KP = 3.2
+    KI = 0.0 # 0.005
+    KD = 0.004
     """ 
-    kp = 5
-    kd = 0.09
-    ki = 0.01
+    KP = 5
+    KD = 0.09
+    KI = 0.01
     """
     average_delta_callback = 0.005
     prev_error = 0.0 
@@ -56,7 +54,10 @@ class WallFollow:
         derivative = (error - self.prev_error)/delta
         self.last_callback = rospy.get_time()
         self.prev_error = error
-        angle = self.kp * error + self.ki*self.integral + self.kd*derivative
+        angle = self.KP * error + self.KI*self.integral + self.KD*derivative
+        return angle
+
+    def publish_drive_msg(self, angle):        
         drive_msg = AckermannDriveStamped()
         drive_msg.header.stamp = rospy.Time.now()
         drive_msg.header.frame_id = "laser"
@@ -69,9 +70,9 @@ class WallFollow:
             self.velocity = VELOCITY /3
         drive_msg.drive.speed = self.velocity
         # print("derivative: "+str(derivative) + " integral "+str(self.integral) + " angle: " + str(angle) +" delta "+str(delta))
-        # print("D: "+str(self.kd*derivative) + " I "+str(self.ki*self.integral) + " P: " + str(self.kp * error))
+        # print("D: "+str(self.KD*derivative) + " I "+str(self.KI*self.integral) + " P: " + str(self.KP * error))
         self.drive_pub.publish(drive_msg)
-
+        
     def followLeft(self, data):
         #Follow left wall as per the algorithm
         # We want the measures at -pi/8 and -pi/2
@@ -90,7 +91,8 @@ class WallFollow:
     def lidar_callback(self, data):
         error = self.followLeft(data)
         #send error to pid_control
-        self.pid_control(error)
+        desired_angle = self.pid_control(error)
+        self.publish_drive_msg(desired_angle)
 
 def main(args):
     rospy.init_node("wall_following", anonymous=True)
