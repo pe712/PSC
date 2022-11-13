@@ -21,13 +21,8 @@ class WallFollow:
     KU = 4
     TU = 1.2 # sec
     KP = 3.2
-    KI = 0.0 # 0.005
+    KI = 0.0
     KD = 0.004
-    """ 
-    KP = 5
-    KD = 0.09
-    KI = 0.01
-    """
     average_delta_callback = 0.005
     prev_error = 0.0 
     integral = 0.0
@@ -40,7 +35,6 @@ class WallFollow:
         drive_topic = '/nav'
         self.lidar_sub = rospy.Subscriber(lidarscan_topic, LaserScan, self.lidar_callback)
         self.drive_pub = rospy.Publisher(drive_topic, AckermannDriveStamped, queue_size=10)
-        
         self.last_callback = rospy.get_time()
 
     def getRange(self, data, angle):
@@ -48,6 +42,7 @@ class WallFollow:
         return data.ranges[k]
 
     def pid_control(self, error):
+        # avoid integral to scale infinitely
         if abs(self.integral)<100:
             self.integral+=error
         delta = rospy.get_time() - self.last_callback
@@ -91,8 +86,8 @@ class WallFollow:
     def lidar_callback(self, data):
         error = self.followLeft(data)
         #send error to pid_control
-        desired_angle = self.pid_control(error)
-        self.publish_drive_msg(desired_angle)
+        angle_to_drive= self.pid_control(error)
+        self.publish_drive_msg(angle_to_drive)
 
 def main(args):
     rospy.init_node("wall_following", anonymous=True)
