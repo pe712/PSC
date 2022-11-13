@@ -45,12 +45,12 @@ class AEB:
     
     def breaking(self):
         # print(str(self.agregate))
-        print(self.velocity)
+        # print(self.velocity)
         if self.velocity==0:
             return
         for medium_distance in self.agregate:
             timeToCollision = medium_distance/self.velocity
-            if (timeToCollision>0 and timeToCollision<0.4) or abs(medium_distance)<0.25:
+            if (timeToCollision>0 and timeToCollision<0.4) or abs(medium_distance)<0.30:
                 self.emergency_stop()
                 break
         else:
