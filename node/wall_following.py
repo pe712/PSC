@@ -12,11 +12,11 @@ from ackermann_msgs.msg import AckermannDriveStamped, AckermannDrive
 
 
 #WALL FOLLOW PARAMS
-DESIRED_DISTANCE_RIGHT = 0.9 # meters
-DESIRED_DISTANCE_LEFT = 0.55
-VELOCITY = 1.5 # desired maximum velocity in meters per second
 
 class WallFollow:
+    DESIRED_DISTANCE_RIGHT = 0.9 # meters
+    DESIRED_DISTANCE_LEFT = 0.55
+    MAX_VELOCITY = 1.5 # desired maximum velocity in meters per second
     #PID CONTROL PARAMS
     KU = 4
     TU = 1.2 # sec
@@ -63,11 +63,11 @@ class WallFollow:
         drive_msg.header.frame_id = "laser"
         drive_msg.drive.steering_angle = angle
         if (abs(angle)<radians(20)):
-            self.velocity = VELOCITY
+            self.velocity = self.MAX_VELOCITY
         elif (abs(angle)<radians(30)):
-            self.velocity = VELOCITY / 1.5
+            self.velocity = self.MAX_VELOCITY / 1.5
         else:
-            self.velocity = VELOCITY /3
+            self.velocity = self.MAX_VELOCITY /3
         drive_msg.drive.speed = self.velocity
         # print("derivative: "+str(derivative) + " integral "+str(self.integral) + " angle: " + str(angle) +" delta "+str(delta))
         # print("D: "+str(self.KD*derivative) + " I "+str(self.KI*self.integral) + " P: " + str(self.KP * error))
@@ -82,9 +82,9 @@ class WallFollow:
         b = self.getRange(data, teta0)
         alpha = atan2((a*cos(teta)-b), (a*sin(teta)))
         D_t = b*cos(alpha)
-        L = VELOCITY*self.average_delta_callback
+        L = self.MAX_VELOCITY*self.average_delta_callback
         D_t1 = D_t + L*sin(alpha)
-        error = DESIRED_DISTANCE_RIGHT - D_t1
+        error = self.DESIRED_DISTANCE_RIGHT - D_t1
         # print("a: "+str(a)+" b: "+str(b)+" D_t:"+str(D_t) + " error: "+str(error))
         return error
         
