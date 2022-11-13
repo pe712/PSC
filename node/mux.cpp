@@ -116,6 +116,13 @@ public:
         n.getParam("brake_mux_idx", brake_mux_idx);
         add_channel(brake_drive_topic, drive_topic, brake_mux_idx);
 
+        // General gap following channel
+        int gap_follow_mux_idx;
+        std::string gap_follow_drive_topic;
+        n.getParam("gap_follow_drive_topic", gap_follow_drive_topic);
+        n.getParam("gap_follow_mux_idx", gap_follow_mux_idx);
+        add_channel(gap_follow_drive_topic, drive_topic, gap_follow_mux_idx);
+        
         // General navigation channel
         int nav_mux_idx;
         std::string nav_drive_topic;
