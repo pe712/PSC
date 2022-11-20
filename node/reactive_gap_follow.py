@@ -9,7 +9,7 @@ from ackermann_msgs.msg import AckermannDriveStamped, AckermannDrive
 from visualization_msgs.msg import Marker
 from nav_msgs.msg import Odometry
 from tf.transformations import euler_from_quaternion
-from geometry_msgs.msg._Quaternion import Quaternion
+from utils import simple_markers
 
 CAR_WIDTH = rospy.get_param("f1tenth_simulator/width", 0.0)
 BARRIER_WIDTH = CAR_WIDTH*4
@@ -100,27 +100,10 @@ class reactive_follow_gap:
         angle_to_drive = data.angle_min + data.angle_increment*best_index
         x = self.x + ranges[best_index]*cos(angle_to_drive+self.angle)
         y = self.y + ranges[best_index]*sin(angle_to_drive+self.angle)
-        self.create_marker(x, y)
+        simple_markers.create_marker(x, y, self.markerPub)
         return angle_to_drive
 
-    def create_marker(self, x, y):
-        marker = Marker()
-        marker.header.frame_id = "/map"
-        marker.header.stamp = rospy.Time()
-        marker.ns = "my_namespace"
-        marker.type = Marker.CUBE
-        marker.id = 0
-        marker.scale.x = 0.1
-        marker.scale.y = 0.1
-        marker.scale.z = 0.1
-        marker.color.a = 1.0
-        marker.color.r = 0.0
-        marker.color.g = 1.0
-        marker.color.b = 0.0
-        marker.pose.position.x = x
-        marker.pose.position.y = y
-        marker.pose.orientation = Quaternion()
-        self.markerPub.publish(marker)
+    
 
     def publish_drive_msg(self, angle):        
         drive_msg = AckermannDriveStamped()
