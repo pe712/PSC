@@ -27,7 +27,8 @@ class reactive_follow_gap:
         self.lidar_sub = rospy.Subscriber(lidarscan_topic, LaserScan, self.lidar_callback)
         self.drive_pub = rospy.Publisher(drive_topic, AckermannDriveStamped, queue_size=10)
         self.last_callback = rospy.get_time()
-        self.markerPub = rospy.Publisher('/visualization_marker', Marker, queue_size=10)
+        self.targetPointPub = rospy.Publisher('/targetPoint', Marker, queue_size=10)
+        self.edgePub = rospy.Publisher('/edges', Marker, queue_size=10)
         self.odom_sub = rospy.Subscriber("/odom", Odometry, self.callback_odom)
     
     def preprocess_lidar(self, data):
@@ -60,6 +61,11 @@ class reactive_follow_gap:
                 # else:
                 #     print(ranges[jump_to: start])
                 angle_stop = data.angle_min + data.angle_increment * jump_to
+                x_from = self.x + ranges[k]*cos(angle_start+self.angle)
+                y_from = self.y + ranges[k]*sin(angle_start+self.angle)
+                x_to = self.x + ranges[jump_to]*cos(angle_stop+self.angle)
+                y_to = self.y + ranges[jump_to]*sin(angle_stop+self.angle)
+                # simple_markers.create_arrow(x_from, y_from, x_to, y_to, self.edgePub)
                 # print("jump from angle "+str(int(degrees(angle_start)))+"deg to angle "+str(int(degrees(angle_stop)))+"deg")
         return ranges
 
@@ -80,13 +86,13 @@ class reactive_follow_gap:
         for i in range(start, stop, edge_sign):
             ranges[i] = dist
         return stop
-        
+
     def find_max_gap(self, ranges, data):
         """ Return the start index & end index of the max gap in ranges
         It will look for the deepest gap with a width of at least the car
         """
         return self.start_i, self.stop_i
-    
+
     def find_best_angle(self, ranges, data):
         """
         Return index of best angle
@@ -100,12 +106,11 @@ class reactive_follow_gap:
         angle_to_drive = data.angle_min + data.angle_increment*best_index
         x = self.x + ranges[best_index]*cos(angle_to_drive+self.angle)
         y = self.y + ranges[best_index]*sin(angle_to_drive+self.angle)
-        simple_markers.create_marker(x, y, self.markerPub)
+        simple_markers.create_marker(x, y, self.targetPointPub)
         return angle_to_drive
 
-    
 
-    def publish_drive_msg(self, angle):        
+    def publish_drive_msg(self, angle):
         drive_msg = AckermannDriveStamped()
         drive_msg.header.stamp = rospy.Time.now()
         drive_msg.header.frame_id = "laser"
