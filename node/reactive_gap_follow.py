@@ -12,11 +12,13 @@ from tf.transformations import euler_from_quaternion
 from utils import simple_markers
 from tf2_ros import Buffer, TransformListener
 from tf2_geometry_msgs import do_transform_pose
+
 CAR_WIDTH = rospy.get_param("f1tenth_simulator/width", 0.0)
 BARRIER_WIDTH = CAR_WIDTH*4
+SIMULATION = rospy.get_param("f1tenth_simulator/width", True)
 
 class reactive_follow_gap:
-    MAX_VELOCITY = 4 # Desired maximum velocity in meters per second
+    MAX_VELOCITY = 3 # Desired maximum velocity in meters per second
     GAP_DISTANCE = 1.5 # Distance in meters between consecutive lidar beams to consider there is an edge here
     MAX_DISTANCE = 40 # The maximum possible distance in the map, greater is an error
     MAX_ROT = pi/3 #the maximum rotation allowed to avoid going backward
@@ -28,13 +30,16 @@ class reactive_follow_gap:
         drive_topic = '/nav'
         self.lidar_sub = rospy.Subscriber(lidarscan_topic, LaserScan, self.lidar_callback)
         self.drive_pub = rospy.Publisher(drive_topic, AckermannDriveStamped, queue_size=10)
-        self.processed_ranges = rospy.Publisher("/processedRanges", LaserScan, queue_size=100)
         self.last_callback = rospy.get_time()
-        self.targetPointPub = rospy.Publisher('/targetPoint', Marker, queue_size=40)
-        self.edgePub = rospy.Publisher('/edges_array', MarkerArray, queue_size=40)
         self.odom_sub = rospy.Subscriber("/odom", Odometry, self.callback_odom)
+        if SIMULATION:
+            self.processed_ranges = rospy.Publisher("/processedRanges", LaserScan, queue_size=100)
+            self.targetPointPub = rospy.Publisher('/targetPoint', Marker, queue_size=40)
+            self.edgePub = rospy.Publisher('/edges_array', MarkerArray, queue_size=40)
+        """ Should use this instead of doing tf manually
         self.tfBuffer = Buffer()
-        self.tf_listener = TransformListener(self.tfBuffer)
+        self.tf_listener = TransformListener(self.tfBuffer) 
+        """
 
     def preprocess_lidar(self, data):
         """ Preprocess the LiDAR scan array. Expert implementation includes:
@@ -65,7 +70,7 @@ class reactive_follow_gap:
                     edge_sign = -1
                     start = k+1
                     # print(ranges[jump_to: start])
-                edges_to_avoid.append((start, edge_sign, angle_start))
+                edges_to_avoid.append((start, edge_sign, angle_start, ranges[start]))
         self.avoid_edge(ranges, edges_to_avoid, data)
         return ranges
 
@@ -74,34 +79,29 @@ class reactive_follow_gap:
         """
         X_from, Y_from, X_to, Y_to = [], [], [], []
         n = len(edges_to_avoid)
-        for count, (start, edge_sign, angle_start) in enumerate(edges_to_avoid):
-            dist = ranges[start]
+        for count, (start, edge_sign, angle_start, dist) in enumerate(edges_to_avoid):
             width_increment = dist * tan(data.angle_increment)
             if width_increment==0:
                 index_increment = edge_sign # au moins 1
             else:
                 index_increment = int(BARRIER_WIDTH/width_increment)*edge_sign
             stop  = start+index_increment
-            # il ne faut pas que cette barriere empiete sur la suivante
-            if count<n-1:
-                next_start, next_edge_sign, next_angle_start = edges_to_avoid[count+1]
-                if edge_sign>0 and stop>=next_start:
-                    stop = next_start
-                elif edge_sign<0 and stop<=next_start:
-                    stop = next_start
             if edge_sign<0:
                 stop = max(-1, stop)
             else:
                 stop = min(len(ranges), stop)
             for i in range(start, stop, edge_sign):
-                ranges[i] = dist
+                # if another barrier is in front of this one, this one is not needed
+                ranges[i] = min(dist, ranges[i])
             angle_stop = data.angle_min + data.angle_increment * stop
-            X_from.append(self.x + dist*cos(angle_start+self.angle) + self.DIST_FROM_LIDAR*cos(self.angle))
-            Y_from.append(self.y + dist*sin(angle_start+self.angle) + self.DIST_FROM_LIDAR*sin(self.angle))
-            X_to.append(self.x + dist*cos(angle_stop+self.angle) + self.DIST_FROM_LIDAR*cos(self.angle))
-            Y_to.append(self.y + dist*sin(angle_stop+self.angle) + self.DIST_FROM_LIDAR*sin(self.angle))
-            print("jump from angle "+str(int(degrees(angle_start)))+"deg to angle "+str(int(degrees(angle_stop)))+"deg")
-        simple_markers.create_arrow(X_from, Y_from, X_to, Y_to, self.edgePub)
+            if SIMULATION:
+                X_from.append(self.x + dist*cos(angle_start+self.angle) + self.DIST_FROM_LIDAR*cos(self.angle))
+                Y_from.append(self.y + dist*sin(angle_start+self.angle) + self.DIST_FROM_LIDAR*sin(self.angle))
+                X_to.append(self.x + dist*cos(angle_stop+self.angle) + self.DIST_FROM_LIDAR*cos(self.angle))
+                Y_to.append(self.y + dist*sin(angle_stop+self.angle) + self.DIST_FROM_LIDAR*sin(self.angle))
+            # print("jump from angle "+str(int(degrees(angle_start)))+"deg to angle "+str(int(degrees(angle_stop)))+"deg")
+        if SIMULATION:
+            simple_markers.create_arrow(X_from, Y_from, X_to, Y_to, self.edgePub)
 
     def find_max_gap(self, ranges, data):
         """ Return the start index & end index of the max gap in ranges
@@ -119,24 +119,25 @@ class reactive_follow_gap:
             if ranges[k]>ranges[best_index]:
                 best_index = k
         # best_index, dist = max(enumerate(ranges[start:stop]), key=lambda x: x[1])
-        msg = LaserScan()
-        msg.ranges = ranges
-        self.processed_ranges.publish(msg)
         # print(best_index, ranges[best_index], start, stop)
         angle_to_drive = data.angle_min + data.angle_increment*best_index
-        x = self.x + ranges[best_index]*cos(angle_to_drive+self.angle) + self.DIST_FROM_LIDAR*cos(self.angle)
-        y = self.y + ranges[best_index]*sin(angle_to_drive+self.angle) + self.DIST_FROM_LIDAR*sin(self.angle)
-        simple_markers.create_marker(x, y, self.targetPointPub)
-        return angle_to_drive
+        if SIMULATION:
+            msg = LaserScan()
+            msg.ranges = ranges
+            self.processed_ranges.publish(msg)
+            x = self.x + ranges[best_index]*cos(angle_to_drive+self.angle) + self.DIST_FROM_LIDAR*cos(self.angle)
+            y = self.y + ranges[best_index]*sin(angle_to_drive+self.angle) + self.DIST_FROM_LIDAR*sin(self.angle)
+            simple_markers.create_marker(x, y, self.targetPointPub)
+        return angle_to_drive, ranges[best_index]
 
-    def publish_drive_msg(self, angle):
+    def publish_drive_msg(self, angle, dist):
         drive_msg = AckermannDriveStamped()
         drive_msg.header.stamp = rospy.Time.now()
         drive_msg.header.frame_id = "laser"
         drive_msg.drive.steering_angle = angle
         if (abs(angle)<radians(20)):
             self.velocity = self.MAX_VELOCITY
-        elif (abs(angle)<radians(30)):
+        elif (abs(angle)<radians(30) or dist<2): # 2 meters
             self.velocity = self.MAX_VELOCITY / 1.5
         else:
             self.velocity = self.MAX_VELOCITY /3
@@ -162,8 +163,8 @@ class reactive_follow_gap:
         if self.n==0:
             self.n=0
             proc_ranges = self.preprocess_lidar(data)
-            desired_angle = self.find_best_angle(proc_ranges, data)
-            self.publish_drive_msg(desired_angle)
+            desired_angle, dist = self.find_best_angle(proc_ranges, data)
+            self.publish_drive_msg(desired_angle, dist)
             # print("steering to "+str(round(degrees(desired_angle), 5))+"\n")
         else:
             self.n+=1
