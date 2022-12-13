@@ -13,7 +13,7 @@ class range_finding:
         self.ranges = ranges
         self.sorted_ranges = sorted(enumerate(ranges), key=lambda x: x[1], reverse=True)   # type: ignore
         # sorted de manière décroissante par distance -> on cherche la plus grande distance
-    
+
     """Renvoie le gap optimal de range
     Le gap optimal est le plus lointain (en prenant la distance minimale du gap) ET d'au moins la largeur desired_width
     Renvoie l'index de début et de fin du gap et sa profondeur
@@ -50,11 +50,8 @@ class range_finding:
         return t_stop
 
 
-    
 if __name__=="__main__":
-    
     # desired_width = 3 * car_width
-        
     start =time()
     for k in range(1000):
         rf = range_finding([rd.random()*20 for k in range(200)], 0)

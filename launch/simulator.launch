@@ -26,9 +26,9 @@
   </node>
 
   <!-- Launch the Random Walker Node -->
-  <node pkg="f1tenth_simulator" name="random_walker" type="random_walk" output="screen">
+  <!-- <node pkg="f1tenth_simulator" name="random_walker" type="random_walk" output="screen">
     <rosparam command="load" file="$(find f1tenth_simulator)/params.yaml"/>
-  </node>
+  </node> -->
 
   <!-- Launch the Keyboard Node -->
   <node pkg="f1tenth_simulator" name="keyboard" type="keyboard" output="screen">
