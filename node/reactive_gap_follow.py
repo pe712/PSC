@@ -47,55 +47,61 @@ class reactive_follow_gap:
         # those are for avoiding edged
         start_avoiding = int((-self.MAX_ROT*2-data.angle_min)/data.angle_increment)
         stop_avoiding = int((self.MAX_ROT*2-data.angle_min)/data.angle_increment)
-        jump_to = 0
         ranges = list(data.ranges)
-        X_from, Y_from, X_to, Y_to = [], [], [], []
+        edges_to_avoid = []
         for k in range(start_avoiding, stop_avoiding):
             angle_start = data.angle_min + data.angle_increment * k
             if ranges[k]>self.MAX_DISTANCE:
                 # Erreur ou sortie de carte
                 ranges[k] = 0
                 print("beam out of the map at angle "+str(int(degrees(angle_start))))
-            elif k>=jump_to and abs(ranges[k+1]-ranges[k])>self.GAP_DISTANCE:
+            elif abs(ranges[k+1]-ranges[k])>self.GAP_DISTANCE:
                 if ranges[k+1]-ranges[k]>0:
                     # Gap on the right
                     edge_sign = 1
                     start = k
+                    # print(ranges[start: jump_to])
                 else:
-                    edge_sign=  -1
+                    edge_sign = -1
                     start = k+1
-                # print(ranges[k], ranges[k+1])
-                jump_to, dist = self.avoid_edge(ranges, start, edge_sign, data.angle_increment) # Last index of the barrier created
-                # if edge_sign:
-                #     print(ranges[start: jump_to])
-                # else:
-                #     print(ranges[jump_to: start])
-                angle_stop = data.angle_min + data.angle_increment * jump_to
-                X_from.append(self.x + dist*cos(angle_start+self.angle) + self.DIST_FROM_LIDAR*cos(self.angle))
-                Y_from.append(self.y + dist*sin(angle_start+self.angle) + self.DIST_FROM_LIDAR*sin(self.angle))
-                X_to.append(self.x + dist*cos(angle_stop+self.angle) + self.DIST_FROM_LIDAR*cos(self.angle))
-                Y_to.append(self.y + dist*sin(angle_stop+self.angle) + self.DIST_FROM_LIDAR*sin(self.angle))
-                # print("jump from angle "+str(int(degrees(angle_start)))+"deg to angle "+str(int(degrees(angle_stop)))+"deg")
-        simple_markers.create_arrow(X_from, Y_from, X_to, Y_to, self.edgePub)
+                    # print(ranges[jump_to: start])
+                edges_to_avoid.append((start, edge_sign, angle_start))
+        self.avoid_edge(ranges, edges_to_avoid, data)
         return ranges
 
-    def avoid_edge(self, ranges, start, edge_sign, angle_increment):
+    def avoid_edge(self, ranges, edges_to_avoid, data):
         """Modifies ranges to create a barrier to be avoided
         """
-        dist = ranges[start]
-        width_increment = dist * tan(angle_increment)
-        if width_increment==0:
-            index_increment = edge_sign
-        else:
-            index_increment = int(BARRIER_WIDTH/width_increment)*edge_sign
-        stop  = start+index_increment
-        if edge_sign<0:
-            stop = max(-1, stop)
-        else:
-            stop = min(len(ranges), stop)
-        for i in range(start, stop, edge_sign):
-            ranges[i] = dist
-        return stop, dist
+        X_from, Y_from, X_to, Y_to = [], [], [], []
+        n = len(edges_to_avoid)
+        for count, (start, edge_sign, angle_start) in enumerate(edges_to_avoid):
+            dist = ranges[start]
+            width_increment = dist * tan(data.angle_increment)
+            if width_increment==0:
+                index_increment = edge_sign # au moins 1
+            else:
+                index_increment = int(BARRIER_WIDTH/width_increment)*edge_sign
+            stop  = start+index_increment
+            # il ne faut pas que cette barriere empiete sur la suivante
+            if count<n-1:
+                next_start, next_edge_sign, next_angle_start = edges_to_avoid[count+1]
+                if edge_sign>0 and stop>=next_start:
+                    stop = next_start
+                elif edge_sign<0 and stop<=next_start:
+                    stop = next_start
+            if edge_sign<0:
+                stop = max(-1, stop)
+            else:
+                stop = min(len(ranges), stop)
+            for i in range(start, stop, edge_sign):
+                ranges[i] = dist
+            angle_stop = data.angle_min + data.angle_increment * stop
+            X_from.append(self.x + dist*cos(angle_start+self.angle) + self.DIST_FROM_LIDAR*cos(self.angle))
+            Y_from.append(self.y + dist*sin(angle_start+self.angle) + self.DIST_FROM_LIDAR*sin(self.angle))
+            X_to.append(self.x + dist*cos(angle_stop+self.angle) + self.DIST_FROM_LIDAR*cos(self.angle))
+            Y_to.append(self.y + dist*sin(angle_stop+self.angle) + self.DIST_FROM_LIDAR*sin(self.angle))
+            print("jump from angle "+str(int(degrees(angle_start)))+"deg to angle "+str(int(degrees(angle_stop)))+"deg")
+        simple_markers.create_arrow(X_from, Y_from, X_to, Y_to, self.edgePub)
 
     def find_max_gap(self, ranges, data):
         """ Return the start index & end index of the max gap in ranges
