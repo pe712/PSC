@@ -4,11 +4,11 @@ from math import tan, degrees, radians, pi, cos, sin
 
 #ROS Imports
 import rospy
-from sensor_msgs.msg import Image, LaserScan
-from ackermann_msgs.msg import AckermannDriveStamped, AckermannDrive
+from sensor_msgs.msg import LaserScan
+from ackermann_msgs.msg import AckermannDriveStamped
 from visualization_msgs.msg import Marker
 from nav_msgs.msg import Odometry
-from tf.transformations import euler_from_quaternion
+from tf.transformations import euler_from_quaternion, quaternion_from_euler
 from utils import simple_markers
 
 CAR_WIDTH = rospy.get_param("f1tenth_simulator/width", 0.0)
@@ -30,7 +30,7 @@ class reactive_follow_gap:
         self.targetPointPub = rospy.Publisher('/targetPoint', Marker, queue_size=10)
         self.edgePub = rospy.Publisher('/edges', Marker, queue_size=10)
         self.odom_sub = rospy.Subscriber("/odom", Odometry, self.callback_odom)
-    
+
     def preprocess_lidar(self, data):
         """ Preprocess the LiDAR scan array. Expert implementation includes:
             1.Setting each value to the mean over some window
@@ -65,8 +65,8 @@ class reactive_follow_gap:
                 y_from = self.y + ranges[k]*sin(angle_start+self.angle)
                 x_to = self.x + ranges[jump_to]*cos(angle_stop+self.angle)
                 y_to = self.y + ranges[jump_to]*sin(angle_stop+self.angle)
-                # simple_markers.create_arrow(x_from, y_from, x_to, y_to, self.edgePub)
-                # print("jump from angle "+str(int(degrees(angle_start)))+"deg to angle "+str(int(degrees(angle_stop)))+"deg")
+                simple_markers.create_arrow(x_from, y_from, x_to, y_to, self.edgePub)
+                print("jump from angle "+str(int(degrees(angle_start)))+"deg to angle "+str(int(degrees(angle_stop)))+"deg")
         return ranges
 
     def avoid_edge(self, ranges, start, edge_sign, angle_increment):
@@ -108,7 +108,6 @@ class reactive_follow_gap:
         y = self.y + ranges[best_index]*sin(angle_to_drive+self.angle)
         simple_markers.create_marker(x, y, self.targetPointPub)
         return angle_to_drive
-
 
     def publish_drive_msg(self, angle):
         drive_msg = AckermannDriveStamped()

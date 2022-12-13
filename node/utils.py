@@ -1,6 +1,5 @@
 from visualization_msgs.msg import Marker
-from geometry_msgs.msg import Quaternion, Point
-from tf.transformations import quaternion_from_euler
+from geometry_msgs.msg import Point, Quaternion
 import rospy
 
 class simple_markers:
@@ -21,7 +20,7 @@ class simple_markers:
         marker.color.b = 0.0
         marker.pose.position.x = x
         marker.pose.position.y = y
-        marker.pose.orientation = quaternion_from_euler(0, 0, 0)
+        marker.pose.orientation = Quaternion(0, 0, 0, 0)
         publisher.publish(marker)
 
     @staticmethod
@@ -39,6 +38,6 @@ class simple_markers:
         marker.color.r = 0.0
         marker.color.g = 1.0
         marker.color.b = 0.0
-        # marker.points=[Point(x_from, y_from, 0), Point(x_to, y_to, 0)]
-        # marker.pose.orientation = quaternion_from_euler(0, 0, 0)
+        marker.points=[Point(x_from, y_from, 0), Point(x_to, y_to, 0)]
+        marker.pose.orientation = Quaternion(0, 0, 0, 0)
         publisher.publish(marker)

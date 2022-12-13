@@ -67,7 +67,7 @@ class WallFollow:
         # print("derivative: "+str(derivative) + " integral "+str(self.integral) + " angle: " + str(angle) +" delta "+str(delta))
         # print("D: "+str(self.KD*derivative) + " I "+str(self.KI*self.integral) + " P: " + str(self.KP * error))
         self.drive_pub.publish(drive_msg)
-        
+
     def followLeft(self, data):
         #Follow left wall as per the algorithm
         # We want the measures at -pi/8 and -pi/2
@@ -82,7 +82,7 @@ class WallFollow:
         error = self.DESIRED_DISTANCE_RIGHT - D_t1
         # print("a: "+str(a)+" b: "+str(b)+" D_t:"+str(D_t) + " error: "+str(error))
         return error
-        
+
     def lidar_callback(self, data):
         error = self.followLeft(data)
         #send error to pid_control
