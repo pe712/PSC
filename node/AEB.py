@@ -19,37 +19,25 @@ class AEB:
 
     def callback_scan(self, data):
         scanner = data.ranges
-
-        """ # we want 60 degrees ahead of the car to avoid collision i.e. pi/3 rad
-        start = int(5*pi/6/data.angle_increment)
-        stop = int(start + pi/3/data.angle_increment)
-        self.medium_distance=0
-        for i in range(start, stop):
-            self.medium_distance+=scanner[i]
-        self.medium_distance/=stop-start 
-        self.breaking()"""
-
-        # to avoid noise we agregate the data of 10 consecutive lidar points to make a 0.05817764173314432 rad angle for each
         # we take into account the angle that will mofidiy the speed
-        agregate = []
         n = len(scanner)
-        for i in range(0, n-10, 5):
-            angle = data.angle_min + data.angle_increment*(i+5)
-            dist_agreg = sum(scanner[i:i+10])/10
-            agregate.append(dist_agreg/cos(angle)) 
-        self.breaking(agregate)
+        directionned_scanner = []
+        for i, distance in enumerate(scanner):
+            angle = data.angle_min + data.angle_increment*i
+            directionned_scanner.append(distance/cos(angle)) 
+        self.breaking(directionned_scanner)
 
     def callback_odom(self, data):
         self.velocity = data.twist.twist.linear.x
 
-    def breaking(self, agregate):
-        # print(str(self.agregate))
+    def breaking(self, directionned_scanner):
+        # print(str(directionned_scanner))
         # print(self.velocity)
         if self.velocity==0:
             return
-        for medium_distance in agregate:
-            timeToCollision = medium_distance/self.velocity
-            if (timeToCollision>0 and timeToCollision<0.3) or abs(medium_distance)<0.30:
+        for distance in directionned_scanner:
+            timeToCollision = distance/self.velocity
+            if (timeToCollision>0 and timeToCollision<0.3) or abs(distance)<0.30:
                 self.emergency_stop()
                 break
         else:
