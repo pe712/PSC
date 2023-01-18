@@ -9,9 +9,11 @@ from ackermann_msgs.msg import AckermannDriveStamped
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Bool
 
+from params import topics
+
 class AEB:
     def __init__(self):
-        self.odom_sub = rospy.Subscriber("/odom", Odometry, self.callback_odom)
+        self.odom_sub = rospy.Subscriber(topics.ODOMETRY, Odometry, self.callback_odom)
         self.scan_sub = rospy.Subscriber("/scan", LaserScan, self.callback_scan)
         self.brake_pub = rospy.Publisher("/brake", AckermannDriveStamped, queue_size=10)
         self.brake_bool_pub = rospy.Publisher("/brake_bool", Bool, queue_size=10)
