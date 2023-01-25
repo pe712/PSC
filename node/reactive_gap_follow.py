@@ -13,6 +13,8 @@ from utils import simple_markers
 from tf2_ros import Buffer, TransformListener
 from tf2_geometry_msgs import do_transform_pose
 
+from params import topics
+
 CAR_WIDTH = rospy.get_param("f1tenth_simulator/width", 0.0)
 BARRIER_WIDTH = CAR_WIDTH*4
 SIMULATION = rospy.get_param("f1tenth_simulator/width", True)
@@ -26,10 +28,8 @@ class reactive_follow_gap:
     n=0
     def __init__(self):
         #Topics & Subscriptions,Publishers
-        lidarscan_topic = '/scan'
-        drive_topic = '/nav'
-        self.lidar_sub = rospy.Subscriber(lidarscan_topic, LaserScan, self.lidar_callback)
-        self.drive_pub = rospy.Publisher(drive_topic, AckermannDriveStamped, queue_size=10)
+        self.lidar_sub = rospy.Subscriber(topics.LIDARSCAN, LaserScan, self.lidar_callback)
+        self.drive_pub = rospy.Publisher(topics.DRIVE, AckermannDriveStamped, queue_size=10)
         self.last_callback = rospy.get_time()
         self.odom_sub = rospy.Subscriber("/odom", Odometry, self.callback_odom)
         if SIMULATION:
@@ -94,7 +94,7 @@ class reactive_follow_gap:
                 # if another barrier is in front of this one, this one is not needed
                 ranges[i] = min(dist, ranges[i])
             angle_stop = data.angle_min + data.angle_increment * stop
-            if SIMULATION:
+            if SIMULATION and hasattr(self, 'x'):
                 X_from.append(self.x + dist*cos(angle_start+self.angle) + self.DIST_FROM_LIDAR*cos(self.angle))
                 Y_from.append(self.y + dist*sin(angle_start+self.angle) + self.DIST_FROM_LIDAR*sin(self.angle))
                 X_to.append(self.x + dist*cos(angle_stop+self.angle) + self.DIST_FROM_LIDAR*cos(self.angle))
@@ -125,9 +125,10 @@ class reactive_follow_gap:
             msg = LaserScan()
             msg.ranges = ranges
             self.processed_ranges.publish(msg)
-            x = self.x + ranges[best_index]*cos(angle_to_drive+self.angle) + self.DIST_FROM_LIDAR*cos(self.angle)
-            y = self.y + ranges[best_index]*sin(angle_to_drive+self.angle) + self.DIST_FROM_LIDAR*sin(self.angle)
-            simple_markers.create_marker(x, y, self.targetPointPub)
+            if hasattr(self, 'x'):
+                x = self.x + ranges[best_index]*cos(angle_to_drive+self.angle) + self.DIST_FROM_LIDAR*cos(self.angle)
+                y = self.y + ranges[best_index]*sin(angle_to_drive+self.angle) + self.DIST_FROM_LIDAR*sin(self.angle)
+                simple_markers.create_marker(x, y, self.targetPointPub)
         return angle_to_drive, ranges[best_index]
 
     def publish_drive_msg(self, angle, dist):

@@ -35,10 +35,12 @@ class AEB:
     def breaking(self, directionned_scanner):
         # print(str(directionned_scanner))
         # print(self.velocity)
-        if self.velocity==0:
+        # We need to keep in memory the velocity because it can change during calculation
+        speed = self.velocity
+        if speed==0:
             return
         for distance in directionned_scanner:
-            timeToCollision = distance/self.velocity
+            timeToCollision = distance/speed
             if (timeToCollision>0 and timeToCollision<0.3) or abs(distance)<0.30:
                 self.emergency_stop()
                 break
