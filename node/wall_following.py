@@ -5,6 +5,8 @@ import sys
 from math import pi, atan2, sin, cos, radians
 import numpy as np
 
+from params import topics
+
 #ROS Imports
 import rospy
 from sensor_msgs.msg import Image, LaserScan
@@ -31,10 +33,8 @@ class WallFollow:
     """
     def __init__(self):
         #Topics & Subs, Pubs
-        lidarscan_topic = '/scan'
-        drive_topic = '/nav'
-        self.lidar_sub = rospy.Subscriber(lidarscan_topic, LaserScan, self.lidar_callback)
-        self.drive_pub = rospy.Publisher(drive_topic, AckermannDriveStamped, queue_size=10)
+        self.lidar_sub = rospy.Subscriber(topics.LIDARSCAN, LaserScan, self.lidar_callback)
+        self.drive_pub = rospy.Publisher(topics.DRIVE, AckermannDriveStamped, queue_size=10)
         self.last_callback = rospy.get_time()
 
     def getRange(self, data, angle):
@@ -52,7 +52,7 @@ class WallFollow:
         angle = self.KP * error + self.KI*self.integral + self.KD*derivative
         return angle
 
-    def publish_drive_msg(self, angle):        
+    def publish_drive_msg(self, angle):
         drive_msg = AckermannDriveStamped()
         drive_msg.header.stamp = rospy.Time.now()
         drive_msg.header.frame_id = "laser"
@@ -67,10 +67,9 @@ class WallFollow:
         # print("derivative: "+str(derivative) + " integral "+str(self.integral) + " angle: " + str(angle) +" delta "+str(delta))
         # print("D: "+str(self.KD*derivative) + " I "+str(self.KI*self.integral) + " P: " + str(self.KP * error))
         self.drive_pub.publish(drive_msg)
-        
+
     def followLeft(self, data):
         #Follow left wall as per the algorithm
-        # We want the measures at -pi/8 and -pi/2
         teta0 = -pi/2
         teta = pi/3
         a = self.getRange(data, teta0+teta)
@@ -82,7 +81,7 @@ class WallFollow:
         error = self.DESIRED_DISTANCE_RIGHT - D_t1
         # print("a: "+str(a)+" b: "+str(b)+" D_t:"+str(D_t) + " error: "+str(error))
         return error
-        
+
     def lidar_callback(self, data):
         error = self.followLeft(data)
         #send error to pid_control
