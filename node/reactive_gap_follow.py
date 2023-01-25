@@ -16,8 +16,10 @@ from tf2_geometry_msgs import do_transform_pose
 from params import topics
 
 CAR_WIDTH = rospy.get_param("f1tenth_simulator/width", 0.0)
+if CAR_WIDTH == 0:
+    CAR_WIDTH = 1/5
 BARRIER_WIDTH = CAR_WIDTH*4
-SIMULATION = rospy.get_param("f1tenth_simulator/width", True)
+SIMULATION = rospy.get_param("f1tenth_simulator/simulation", False)
 
 class reactive_follow_gap:
     MAX_VELOCITY = 3 # Desired maximum velocity in meters per second
