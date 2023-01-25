@@ -5,11 +5,11 @@ I heavily suggest you to check [Moodle_page](https://moodle.polytechnique.fr/cou
 ## running the car
 
 * take racecar 2
-* ssh to the host
+* ssh to the host (password is nvidia)
 
 ```
-Host f1tenth_car_1
-  HostName 192.168.1.21
+Host f1tenth_car_2
+  HostName 192.168.1.22
   User nvidia
 ```
 

@@ -53,3 +53,7 @@ At this point you can use gazebo and rviz. For more detailled installation steps
 You must be aware that this is the simulatot. It is different from the software installed on the car which is f1tenth_system.
 
 To install f1tenth simulator you should follow official wiki [here](https://f1tenth.readthedocs.io/en/stable/going_forward/simulator/sim_install.html).
+
+# IDE
+
+I suggest you use VScode as an IDE. It integrates features to code in ROS, python or C++. But also it is very powerful to deal with git and remote connection.
