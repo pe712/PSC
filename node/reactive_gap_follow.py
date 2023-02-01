@@ -17,13 +17,13 @@ from params import topics
 
 CAR_WIDTH = rospy.get_param("f1tenth_simulator/width", 0.0)
 if CAR_WIDTH == 0:
-    CAR_WIDTH = 0.4
-BARRIER_WIDTH = CAR_WIDTH*4
+    CAR_WIDTH = 0.2
+BARRIER_WIDTH = CAR_WIDTH*1.9
 
 SIMULATION = rospy.get_param("f1tenth_simulator/simulation", False)
 
 class reactive_follow_gap:
-    MAX_VELOCITY = 1.5 # Desired maximum velocity in meters per second
+    MAX_VELOCITY = 2 # Desired maximum velocity in meters per second
     GAP_DISTANCE = 1.5 # Distance in meters between consecutive lidar beams to consider there is an edge here
     MAX_DISTANCE = 40 # The maximum possible distance in the map, greater is an error
     MAX_ROT = pi/3 #the maximum rotation allowed to avoid going backward
@@ -141,10 +141,11 @@ class reactive_follow_gap:
         drive_msg.drive.steering_angle = angle
         if (abs(angle)<radians(20)):
             self.velocity = self.MAX_VELOCITY
-        elif (abs(angle)<radians(30) or dist<2): # 2 meters
+        elif (abs(angle)>radians(30) or dist<2): # 2 meters
             self.velocity = self.MAX_VELOCITY / 1.5
         else:
-            self.velocity = self.MAX_VELOCITY /3
+            # angle is between 20 and 30, affine function
+            self.velocity = self.MAX_VELOCITY * (1 + (abs(angle)-radians(20))/(radians(20)-radians(30))/3)
         drive_msg.drive.speed = self.velocity
         self.drive_pub.publish(drive_msg)
 
