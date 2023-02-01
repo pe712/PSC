@@ -17,7 +17,7 @@ from params import topics
 
 CAR_WIDTH = rospy.get_param("f1tenth_simulator/width", 0.0)
 if CAR_WIDTH == 0:
-    CAR_WIDTH = 1/5
+    CAR_WIDTH = 0.4
 BARRIER_WIDTH = CAR_WIDTH*4
 SIMULATION = rospy.get_param("f1tenth_simulator/simulation", False)
 
