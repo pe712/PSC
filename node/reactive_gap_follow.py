@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import sys
-from math import tan, degrees, radians, pi, cos, sin, arc, atan
+from math import tan, degrees, radians, pi, cos, sin, atan
 
 #ROS Imports
 import rospy
