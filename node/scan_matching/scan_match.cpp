@@ -1,6 +1,7 @@
 #include <sstream>
 #include <string>
 #include <cmath>
+#include <iostream>
 
 #include "ros/ros.h"
 #include "sensor_msgs/LaserScan.h"
@@ -10,6 +11,9 @@
 #include "transform.h"
 #include "visualization.h"
 #include <tf/transform_broadcaster.h>
+
+#include <stdio.h>
+
 
 
 using namespace std;
