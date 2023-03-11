@@ -14,8 +14,8 @@ from params import topics
 class AEB:
     def __init__(self):
         self.odom_sub = rospy.Subscriber(topics.ODOMETRY, Odometry, self.callback_odom)
-        self.scan_sub = rospy.Subscriber("/scan", LaserScan, self.callback_scan)
-        self.brake_pub = rospy.Publisher("/brake", AckermannDriveStamped, queue_size=10)
+        self.scan_sub = rospy.Subscriber(topics.LIDARSCAN, LaserScan, self.callback_scan)
+        self.brake_pub = rospy.Publisher(topics.SAFETY, AckermannDriveStamped, queue_size=10)
         self.brake_bool_pub = rospy.Publisher("/brake_bool", Bool, queue_size=10)
         self.velocity=0
 

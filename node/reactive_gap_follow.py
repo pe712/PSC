@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import sys
-from math import tan, degrees, radians, pi, cos, sin
+from math import tan, degrees, radians, pi, cos, sin, atan
 
 #ROS Imports
 import rospy
@@ -16,11 +16,15 @@ from tf2_geometry_msgs import do_transform_pose
 from params import topics
 
 CAR_WIDTH = rospy.get_param("f1tenth_simulator/width", 0.0)
-BARRIER_WIDTH = CAR_WIDTH*4
-SIMULATION = rospy.get_param("f1tenth_simulator/width", True)
+if CAR_WIDTH == 0:
+    CAR_WIDTH = 0.2
+BARRIER_WIDTH = CAR_WIDTH*2
+
+SIMULATION = rospy.get_param("f1tenth_simulator/simulation", False)
 
 class reactive_follow_gap:
     MAX_VELOCITY = 3 # Desired maximum velocity in meters per second
+    TURN_VELOCITY = 1.3
     GAP_DISTANCE = 1.5 # Distance in meters between consecutive lidar beams to consider there is an edge here
     MAX_DISTANCE = 40 # The maximum possible distance in the map, greater is an error
     MAX_ROT = pi/3 #the maximum rotation allowed to avoid going backward
@@ -138,10 +142,14 @@ class reactive_follow_gap:
         drive_msg.drive.steering_angle = angle
         if (abs(angle)<radians(20)):
             self.velocity = self.MAX_VELOCITY
-        elif (abs(angle)<radians(30) or dist<2): # 2 meters
-            self.velocity = self.MAX_VELOCITY / 1.5
+        elif (abs(angle)>radians(30)):
+            self.velocity = self.TURN_VELOCITY
         else:
-            self.velocity = self.MAX_VELOCITY /3
+            # angle is between 20 and 30, affine function
+            factor_angle = 1 + (abs(angle)-radians(20))/(radians(30)-radians(20))*(-1+self.TURN_VELOCITY/self.MAX_VELOCITY)
+            factor_dist = (pi/2+ atan(dist))/pi
+            self.velocity = self.MAX_VELOCITY * factor_angle*factor_dist
+        print("max velocity = "+str(self.MAX_VELOCITY)+" distance forward = "+str(dist)+" current velocity cmd = "+str(self.velocity))
         drive_msg.drive.speed = self.velocity
         self.drive_pub.publish(drive_msg)
 
@@ -166,7 +174,7 @@ class reactive_follow_gap:
             proc_ranges = self.preprocess_lidar(data)
             desired_angle, dist = self.find_best_angle(proc_ranges, data)
             self.publish_drive_msg(desired_angle, dist)
-            # print("steering to "+str(round(degrees(desired_angle), 5))+"\n")
+            print("steering to "+str(round(degrees(desired_angle), 5))+"\n")
         else:
             self.n+=1
 
