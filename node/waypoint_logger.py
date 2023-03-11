@@ -2,7 +2,6 @@
 import rospy
 import numpy as np
 import atexit
-import tf
 from params import filenames
 from os.path import expanduser
 from time import gmtime, strftime
@@ -19,12 +18,11 @@ def save_waypoint(data):
                            data.pose.pose.orientation.z, 
                            data.pose.pose.orientation.w])
 
-    euler = tf.transformations.euler_from_quaternion(quaternion)
+    euler = euler_from_quaternion(quaternion)
     speed = LA.norm(np.array([data.twist.twist.linear.x, 
                               data.twist.twist.linear.y, 
                               data.twist.twist.linear.z]),2)
     if data.twist.twist.linear.x>0.:
-        
         print(data.twist.twist.linear.x)
 
     file.write('%f, %f, %f, %f\n' % (data.pose.pose.position.x,
