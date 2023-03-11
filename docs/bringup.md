@@ -56,12 +56,12 @@ rosrun f1tenth_simulator wall_following.py
 ## Mapping
 That will localize the car in a map it is creating (SLAM).
 ```
-roslaunch gmapping slam_gmapping_pr2.launch
+roslaunch gmapping slam_gmapping_pr2.launch scan:=/scan
 ```
 
 When done you can download it
 ```
-rosrun map_server map_saver -f circuit.pgm
+rosrun map_server map_saver -f circuit
 ```
 
 ## Localization
