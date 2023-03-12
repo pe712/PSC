@@ -2,16 +2,15 @@
 import rospy
 import numpy as np
 import atexit
-from params import filenames
-from os.path import expanduser
+from os import getcwd
+from os.path import abspath
 from time import gmtime, strftime
 from numpy import linalg as LA
 from tf.transformations import euler_from_quaternion
 from nav_msgs.msg import Odometry
 
-home = expanduser('~')
 # Enregistrement du fichier csv apres avoir parcouru le circuit avec la voiture
-file= open(filenames.CSV_FOLDER_PATH + 'scripts.csv', 'w')
+file= open(abspath(getcwd()) + '/../fichiers_csv/scripts.csv', 'w')
 def save_waypoint(data):
     quaternion = np.array([data.pose.pose.orientation.x, 
                            data.pose.pose.orientation.y, 
