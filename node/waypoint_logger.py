@@ -2,9 +2,7 @@
 import rospy
 import numpy as np
 import atexit
-from os import getcwd
-from os.path import abspath
-from time import gmtime, strftime
+from os.path import dirname
 from numpy import linalg as LA
 from tf.transformations import euler_from_quaternion
 from nav_msgs.msg import Odometry
@@ -33,7 +31,7 @@ def plot_fig():
         origin = [float(origin[0]), float(origin[1])]
     # Lecture des coordonnees
     coords = []
-    with open(getcwd()+'/../fichiers_csv/waypoints.csv', 'r') as f:
+    with open(dirname(__file__)+'/../fichiers_csv/waypoints.csv', 'r') as f:
         for line in f:
             point = line.split(", ")
             x, y = float(point[0]), float(point[1])
@@ -52,7 +50,7 @@ def plot_fig():
         plt.scatter(x, y, color='r')
         plt.annotate(str(i), (x,y))
         print(x,y)
-    plt.savefig(getcwd()+"/../fichiers_csv/waypoints.png")
+    plt.savefig(dirname(__file__)+"/../fichiers_csv/waypoints.png")
     plt.show()
 
 # Enregistrement du fichier csv apres avoir parcouru le circuit avec la voiture
@@ -88,13 +86,13 @@ if __name__ == '__main__':
         if args[0]=="record":
             print('Saving waypoints...')
             try:
-                with open(getcwd()+'/../fichiers_csv/waypoints.csv', 'w') as file:
+                with open(dirname(__file__)+'/../fichiers_csv/waypoints.csv', 'w') as file:
                     listener()
             except rospy.ROSInterruptException:
                 pass
         elif args[0]=="show":
             map_filename = args[1]
-            map_pathname = getcwd()+'/../maps/'+map_filename
+            map_pathname = dirname(__file__)+'/../maps/'+map_filename
             plot_fig()
         elif args[0]=="select":
             # TODO
