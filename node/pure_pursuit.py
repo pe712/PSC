@@ -34,6 +34,7 @@ class PurePursuit(object):
 
         self.drive_pub = rospy.Publisher("/nav", AckermannDriveStamped, queue_size=1000)
         #self.way_points_list = np.genfromtxt(file_waypoint, delimiter=', ', usecols=(0, 1))
+        
         coords=[]
         with open(getcwd()+'/../fichiers_csv/waypoints.csv', 'r') as f:
             for line in f:
@@ -41,6 +42,7 @@ class PurePursuit(object):
                 x, y = float(point[0]), float(point[1])
                 coords.append((x, y))
         self.index = -1
+        self.way_points_list=coords
 
         # Essai sur les donnees 
         self.marker_publisher = rospy.Publisher('waypoints', MarkerArray, queue_size=1000)
@@ -50,7 +52,7 @@ class PurePursuit(object):
 
     def way_points_marker(self, way_points_list):
         markers = MarkerArray()
-        for i in range(way_points_list.shape[0]):  #taille de la liste
+        for i in range(len(way_points_list)):  #taille de la liste
         #  rosmsg show Marker pour les composantes
             marker = Marker()
             marker.header.frame_id = 'map' 
