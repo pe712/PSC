@@ -1,27 +1,33 @@
 #!/usr/bin/env python
 import rospy
 import numpy as np
-import atexit
 from os.path import dirname
-from numpy import linalg as LA
 from tf.transformations import euler_from_quaternion
 from nav_msgs.msg import Odometry
 import matplotlib.pyplot as plt
-import sys
+from sys import argv
+from re import search
 
 # Lecture de l'image PGM
-def plot_fig():
+def plot_fig(map_pathname):
     # show the map img
-    with open(map_pathname, 'r') as f:
-        head = f.readline()
-        head = f.readline()
-        sz = f.readline().split()
-        wdt, hgt = int(sz[0]), int(sz[1])
-        maxval = int(f.readline().strip())
-        image = np.zeros((hgt, wdt))
-        for y in range(hgt):
-            for x in range(wdt):
-                image[y, x] = int(f.read(4).strip())
+    with open(map_pathname, 'rb') as f:
+        buffer = f.read()
+        match = search(
+            b"(^P5\s(?:\s*#.*[\r\n])*"
+            b"(\d+)\s(?:\s*#.*[\r\n])*"
+            b"(\d+)\s(?:\s*#.*[\r\n])*"
+            b"(\d+)\s(?:\s*#.*[\r\n]\s)*)", buffer)
+        if match:
+            header, width, height, maxval = match.groups()
+        else:
+            raise ValueError("Not a raw PGM file: '%s'" % map_pathname)
+        image = np.frombuffer(buffer,
+                            dtype='u1' if int(maxval) < 256 else '<u2',
+                            count=int(width)*int(height),
+                            offset=len(header)
+                            ).reshape((int(height), int(width)))
+    plt.imshow(image, cmap='gray', origin='lower')
     # get parameters of the img
     yaml_file_pathname = map_pathname.replace(".pgm", ".yaml")
     with open(yaml_file_pathname, 'r') as f:
@@ -44,8 +50,6 @@ def plot_fig():
         newx = scale * (x + dx)
         newy = scale * (y + dy)
         coords[i]=(newx, newy)
-    # Affichage de l'image avec les points
-    plt.imshow(image, cmap='gray', origin='lower')
     for i, (x, y) in enumerate(coords):
         plt.scatter(x, y, color='r')
         plt.annotate(str(i), (x,y))
@@ -61,9 +65,7 @@ def save_waypoint(data):
                            data.pose.pose.orientation.w])
 
     euler = euler_from_quaternion(quaternion)
-    speed = LA.norm(np.array([data.twist.twist.linear.x, 
-                              data.twist.twist.linear.y, 
-                              data.twist.twist.linear.z]),2)
+    speed = (data.twist.twist.linear.x**2 +data.twist.twist.linear.y**2+data.twist.twist.linear.z**2)**0.5
     if data.twist.twist.linear.x>0.:
         print(data.twist.twist.linear.x)
 
@@ -78,22 +80,18 @@ def listener():
     rospy.spin()
 
 if __name__ == '__main__':
-    ui_msg="The only arguments allowed are 'record' and 'show-map_filename'\nFor example ./waypoint_logger.py show-circuit.pgm"
-    if len(sys.argv)!=2:
+    ui_msg="The only arguments allowed are 'record' and 'show-map_filename'\nFor example './waypoint_logger.py show-circuit.pgm' or ./waypoint_logger.py record"
+    if len(argv)!=2:
         print(ui_msg)
     else:
-        args =sys.argv[1].split("-")
+        args =argv[1].split("-")
         if args[0]=="record":
             print('Saving waypoints...')
-            try:
-                with open(dirname(__file__)+'/../fichiers_csv/waypoints.csv', 'w') as file:
-                    listener()
-            except rospy.ROSInterruptException:
-                pass
+            with open(dirname(__file__)+'/../fichiers_csv/waypoints.csv', 'w') as file:
+                listener()
         elif args[0]=="show":
             map_filename = args[1]
-            map_pathname = dirname(__file__)+'/../maps/'+map_filename
-            plot_fig()
+            plot_fig(dirname(__file__)+'/../maps/'+map_filename)
         elif args[0]=="select":
             # TODO
             a=0
