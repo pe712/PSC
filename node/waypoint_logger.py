@@ -36,8 +36,7 @@ def plot_fig(map_pathname):
         origin = f.readline().split(": ")[1].replace("[", "").split(", ")
         origin = [float(origin[0]), float(origin[1])]
     # Lecture des coordonnees
-    data = np.loadtxt("/home/pe/catkin_ws/src/f1tenth_simulator/fichiers_csv/waypoints.csv", delimiter=",")
-    coords = data[:, :2]
+    coords = np.loadtxt(node_directory+"/../fichiers_csv/waypoints.csv", delimiter=",", usecols=(0,1))
     # Transformation des coordonnees
     scale = 1/resolution
     for i, (dx, dy) in enumerate(coords):
