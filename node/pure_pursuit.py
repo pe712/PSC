@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import rospy
-import csv
 import numpy as np
 import tf
 from numpy import linalg as LA
@@ -9,18 +8,16 @@ from visualization_msgs.msg._Marker import Marker
 from visualization_msgs.msg._MarkerArray import MarkerArray 
 from geometry_msgs.msg import PoseStamped
 from tf.transformations import euler_from_quaternion
-from os.path import expanduser
+from os.path import dirname
 
 # TODO: import ROS msg types and libraries
 from sensor_msgs.msg import LaserScan
 from ackermann_msgs.msg import AckermannDriveStamped
 from nav_msgs.msg import Odometry
 
-home = expanduser('~')
 look_head_distance = 1.5
 kp = 1.2
-file='home/'
-file_waypoint = '/catkin_ws/src/f1tenth_simulator/fichiers_csv/scripts.csv'
+file_waypoint = dirname(__file__) + "/../fichiers_csv/waypoints.csv"
 VELOCITY = 5
 
 class PurePursuit(object):
@@ -32,7 +29,7 @@ class PurePursuit(object):
         rospy.Subscriber('/odom', Odometry, self.pose_callback)
 
         self.drive_pub = rospy.Publisher("/nav", AckermannDriveStamped, queue_size=1000)
-        self.way_points_list = np.genfromtxt(file_waypoint, delimiter=',', usecols=(0, 1))
+        self.way_points_list = np.loadtxt(file_waypoint, delimiter=",", usecols=(0, 1))
         self.index = -1
 
         # Essai sur les donnees 
