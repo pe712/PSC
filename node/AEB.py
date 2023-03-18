@@ -9,14 +9,15 @@ from ackermann_msgs.msg import AckermannDriveStamped
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Bool
 
-from params import topics
+from switching_params import topics
+from switcher import SIMULATION
 
 class AEB:
     def __init__(self):
         self.odom_sub = rospy.Subscriber(topics.ODOMETRY, Odometry, self.callback_odom)
         self.scan_sub = rospy.Subscriber(topics.LIDARSCAN, LaserScan, self.callback_scan)
         self.brake_pub = rospy.Publisher(topics.SAFETY, AckermannDriveStamped, queue_size=10)
-        self.brake_bool_pub = rospy.Publisher("/brake_bool", Bool, queue_size=10)
+        self.brake_bool_pub = rospy.Publisher(topics.SAFETY_BOOL, Bool, queue_size=10)
         self.velocity=0
 
     def callback_scan(self, data):
