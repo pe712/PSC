@@ -40,3 +40,41 @@ Write
 export ROS_MASTER_URI=http://192.168.1.106:11311
 export ROS_HOSTNAME=192.168.1.106
 ```
+
+## 
+```
+roslaunch racecar teleop.launch
+```
+
+## Reactive method
+Choose between
+```
+rosrun f1tenth_simulator reactive_gap_follow.py
+rosrun f1tenth_simulator wall_following.py
+```
+
+## Mapping
+That will localize the car in a map it is creating (SLAM).
+```
+roslaunch gmapping slam_gmapping_pr2.launch scan:=/scan
+```
+
+When done you can download it in maps
+```
+rosrun map_server map_saver -f circuit
+```
+
+## Localization
+Gmapping is doing SLAM. But to be more efficient when the map is created, you can use particle filters algo to localize the car.
+Change map in particle_filter/launch/map_server.launch
+```
+roslaunch particle_filter localize.launch
+```
+exporting to pf/pose/odom
+
+## Planning
+```
+
+```
+
+

@@ -1,30 +1,66 @@
 #!/usr/bin/env python
 import rospy
 import numpy as np
-import atexit
-import tf
-from params import filenames
-from os.path import expanduser
-from time import gmtime, strftime
-from numpy import linalg as LA
+from os.path import dirname
 from tf.transformations import euler_from_quaternion
 from nav_msgs.msg import Odometry
+import matplotlib.pyplot as plt
+from sys import argv
+from re import search
 
-home = expanduser('~')
-# Enregistrement du fichier csv apres avoir parcouru le circuit avec la voiture
-file= open(filenames.CSV_FOLDER_PATH + 'scripts.csv', 'w')
+# ___________________________________ Lecture de l'image PGM ___________________________________
+def plot_fig(map_pathname):
+    # show the map img
+    with open(map_pathname, 'rb') as f:
+        buffer = f.read()
+        match = search(
+            b"(^P5\s(?:\s*#.*[\r\n])*"
+            b"(\d+)\s(?:\s*#.*[\r\n])*"
+            b"(\d+)\s(?:\s*#.*[\r\n])*"
+            b"(\d+)\s(?:\s*#.*[\r\n]\s)*)", buffer)
+        if match:
+            header, width, height, maxval = match.groups()
+        else:
+            raise ValueError("Not a raw PGM file: '%s'" % map_pathname)
+        image = np.frombuffer(buffer,
+                            dtype='u1' if int(maxval) < 256 else '<u2',
+                            count=int(width)*int(height),
+                            offset=len(header)
+                            ).reshape((int(height), int(width)))
+    plt.imshow(image, cmap='gray', origin='lower')
+    # get parameters of the img
+    yaml_file_pathname = map_pathname.replace(".pgm", ".yaml")
+    with open(yaml_file_pathname, 'r') as f:
+        head = f.readline()
+        resolution = float(f.readline().split(": ")[1])
+        origin = f.readline().split(": ")[1].replace("[", "").split(", ")
+        origin = [float(origin[0]), float(origin[1])]
+    # Lecture des coordonnees
+    data = np.loadtxt("/home/pe/catkin_ws/src/f1tenth_simulator/fichiers_csv/waypoints.csv", delimiter=",")
+    coords = data[:, :2]
+    # Transformation des coordonnees
+    scale = 1/resolution
+    for i, (dx, dy) in enumerate(coords):
+        newx = scale * (origin[0] + dx)
+        newy = scale * (origin[1] + dy)
+        coords[i]=(newx, newy)
+    for i, (x, y) in enumerate(coords):
+        plt.scatter(x, y, color='r')
+        plt.annotate(str(i), (x,y))
+        print(x,y)
+    plt.savefig(node_directory+"/../fichiers_csv/waypoints.png")
+    plt.show()
+
+# ___________________________________ Enregistrement du fichier csv apres avoir parcouru le circuit avec la voiture ___________________________________
 def save_waypoint(data):
     quaternion = np.array([data.pose.pose.orientation.x, 
                            data.pose.pose.orientation.y, 
                            data.pose.pose.orientation.z, 
                            data.pose.pose.orientation.w])
 
-    euler = tf.transformations.euler_from_quaternion(quaternion)
-    speed = LA.norm(np.array([data.twist.twist.linear.x, 
-                              data.twist.twist.linear.y, 
-                              data.twist.twist.linear.z]),2)
+    euler = euler_from_quaternion(quaternion)
+    speed = (data.twist.twist.linear.x**2 +data.twist.twist.linear.y**2+data.twist.twist.linear.z**2)**0.5
     if data.twist.twist.linear.x>0.:
-        
         print(data.twist.twist.linear.x)
 
     file.write('%f, %f, %f, %f\n' % (data.pose.pose.position.x,
@@ -32,19 +68,35 @@ def save_waypoint(data):
                                      euler[2],
                                      speed))
 
-def shutdown():
-    file.close()
-    print('Goodbye')
- 
 def listener():
     rospy.init_node('waypoints_logger', anonymous=True)
     rospy.Subscriber('pf/pose/odom', Odometry, save_waypoint)
     rospy.spin()
 
+# ___________________________________ Conserver uniquement les waypoints utiles ___________________________________
+def tronque_boucle_csv(start, end):
+    with open(node_directory+'/../fichiers_csv/waypoints.csv', 'r') as f:
+        lines = f.readlines()
+        with open(node_directory+'/../fichiers_csv/truncated_waypoints.csv', 'w') as new_f:
+            for line in lines[start:end]:
+                new_f.write(line)
+
+
 if __name__ == '__main__':
-    atexit.register(shutdown)
-    print('Saving waypoints...')
-    try:
-        listener()
-    except rospy.ROSInterruptException:
-        pass
+    node_directory = dirname(__file__)
+    ui_msg="The only arguments allowed are 'record' 'truncate-start-stop' and 'show-map_filename'\nExamples\n./waypoint_logger.py record\n./waypoint_logger.py show-circuit.pgm\n./waypoint_logger.py truncate-57-230"
+    if len(argv)!=2:
+        print(ui_msg)
+    else:
+        args =argv[1].split("-")
+        if args[0]=="record":
+            print('Saving waypoints...')
+            with open(node_directory+'/../fichiers_csv/waypoints.csv', 'w') as file:
+                listener()
+        elif args[0]=="show":
+            map_filename = args[1]
+            plot_fig(node_directory+'/../maps/'+map_filename)
+        elif args[0]=="truncate":
+            tronque_boucle_csv(int(args[1]), int(args[2]))
+        else:
+            print(ui_msg)
