@@ -5,7 +5,7 @@ import sys
 from math import pi, atan2, sin, cos, radians
 import numpy as np
 
-from params import topics
+from switching_params import topics
 
 #ROS Imports
 import rospy
