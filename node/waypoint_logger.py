@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from sys import argv
 from re import search
 
-# Lecture de l'image PGM
+# ___________________________________ Lecture de l'image PGM ___________________________________
 def plot_fig(map_pathname):
     # show the map img
     with open(map_pathname, 'rb') as f:
@@ -51,7 +51,7 @@ def plot_fig(map_pathname):
     plt.savefig(node_directory+"/../fichiers_csv/waypoints.png")
     plt.show()
 
-# Enregistrement du fichier csv apres avoir parcouru le circuit avec la voiture
+# ___________________________________ Enregistrement du fichier csv apres avoir parcouru le circuit avec la voiture ___________________________________
 def save_waypoint(data):
     quaternion = np.array([data.pose.pose.orientation.x, 
                            data.pose.pose.orientation.y, 
@@ -73,9 +73,18 @@ def listener():
     rospy.Subscriber('pf/pose/odom', Odometry, save_waypoint)
     rospy.spin()
 
+# ___________________________________ Conserver uniquement les waypoints utiles ___________________________________
+def tronque_boucle_csv(start, end):
+    with open(node_directory+'/../fichiers_csv/waypoints.csv', 'r') as f:
+        lines = f.readlines()
+        with open(node_directory+'/../fichiers_csv/truncated_waypoints.csv', 'w') as new_f:
+            for line in lines[start:end]:
+                new_f.write(line)
+
+
 if __name__ == '__main__':
     node_directory = dirname(__file__)
-    ui_msg="The only arguments allowed are 'record' and 'show-map_filename'\nFor example './waypoint_logger.py show-circuit.pgm' or ./waypoint_logger.py record"
+    ui_msg="The only arguments allowed are 'record' 'truncate-start-stop' and 'show-map_filename'\nExamples\n./waypoint_logger.py record\n./waypoint_logger.py show-circuit.pgm\n./waypoint_logger.py truncate-57-230"
     if len(argv)!=2:
         print(ui_msg)
     else:
@@ -87,8 +96,7 @@ if __name__ == '__main__':
         elif args[0]=="show":
             map_filename = args[1]
             plot_fig(node_directory+'/../maps/'+map_filename)
-        elif args[0]=="select":
-            # TODO
-            a=0
+        elif args[0]=="truncate":
+            tronque_boucle_csv(int(args[1]), int(args[2]))
         else:
             print(ui_msg)
