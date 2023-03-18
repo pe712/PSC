@@ -37,7 +37,7 @@ def plot_fig(map_pathname):
         origin = [float(origin[0]), float(origin[1])]
     # Lecture des coordonnees
     coords = []
-    with open(dirname(__file__)+'/../fichiers_csv/waypoints.csv', 'r') as f:
+    with open(node_directory+'/../fichiers_csv/waypoints.csv', 'r') as f:
         for line in f:
             point = line.split(", ")
             x, y = float(point[0]), float(point[1])
@@ -54,7 +54,7 @@ def plot_fig(map_pathname):
         plt.scatter(x, y, color='r')
         plt.annotate(str(i), (x,y))
         print(x,y)
-    plt.savefig(dirname(__file__)+"/../fichiers_csv/waypoints.png")
+    plt.savefig(node_directory+"/../fichiers_csv/waypoints.png")
     plt.show()
 
 # Enregistrement du fichier csv apres avoir parcouru le circuit avec la voiture
@@ -80,6 +80,7 @@ def listener():
     rospy.spin()
 
 if __name__ == '__main__':
+    node_directory = dirname(__file__)
     ui_msg="The only arguments allowed are 'record' and 'show-map_filename'\nFor example './waypoint_logger.py show-circuit.pgm' or ./waypoint_logger.py record"
     if len(argv)!=2:
         print(ui_msg)
@@ -87,11 +88,11 @@ if __name__ == '__main__':
         args =argv[1].split("-")
         if args[0]=="record":
             print('Saving waypoints...')
-            with open(dirname(__file__)+'/../fichiers_csv/waypoints.csv', 'w') as file:
+            with open(node_directory+'/../fichiers_csv/waypoints.csv', 'w') as file:
                 listener()
         elif args[0]=="show":
             map_filename = args[1]
-            plot_fig(dirname(__file__)+'/../maps/'+map_filename)
+            plot_fig(node_directory+'/../maps/'+map_filename)
         elif args[0]=="select":
             # TODO
             a=0
