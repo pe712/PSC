@@ -36,19 +36,13 @@ def plot_fig(map_pathname):
         origin = f.readline().split(": ")[1].replace("[", "").split(", ")
         origin = [float(origin[0]), float(origin[1])]
     # Lecture des coordonnees
-    coords = []
-    with open(node_directory+'/../fichiers_csv/waypoints.csv', 'r') as f:
-        for line in f:
-            point = line.split(", ")
-            x, y = float(point[0]), float(point[1])
-            coords.append((x, y))
+    data = np.loadtxt("/home/pe/catkin_ws/src/f1tenth_simulator/fichiers_csv/waypoints.csv", delimiter=",")
+    coords = data[:, :2]
     # Transformation des coordonnees
     scale = 1/resolution
-    dx, dy = origin[0], origin[1] # exemple de translation
-    print(dx,dy)
-    for i, (x, y) in enumerate(coords):
-        newx = scale * (x + dx)
-        newy = scale * (y + dy)
+    for i, (dx, dy) in enumerate(coords):
+        newx = scale * (origin[0] + dx)
+        newy = scale * (origin[1] + dy)
         coords[i]=(newx, newy)
     for i, (x, y) in enumerate(coords):
         plt.scatter(x, y, color='r')
