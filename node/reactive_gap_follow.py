@@ -12,6 +12,7 @@ from tf.transformations import euler_from_quaternion
 from utils import simple_markers
 from tf2_ros import Buffer, TransformListener
 from tf2_geometry_msgs import do_transform_pose
+from switcher import SIMULATION
 
 from switching_params import topics
 
@@ -19,8 +20,6 @@ CAR_WIDTH = rospy.get_param("f1tenth_simulator/width", 0.0)
 if CAR_WIDTH == 0:
     CAR_WIDTH = 0.2
 BARRIER_WIDTH = CAR_WIDTH*2
-
-SIMULATION = rospy.get_param("f1tenth_simulator/simulation", False)
 
 class reactive_follow_gap:
     MAX_VELOCITY = 3 # Desired maximum velocity in meters per second

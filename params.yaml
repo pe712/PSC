@@ -124,5 +124,3 @@ scan_frame: "laser"
 
 broadcast_transform: true
 publish_ground_truth_pose: true
-
-simulation: false
