@@ -55,14 +55,31 @@ rosrun f1tenth_simulator wall_following.py
 
 ## Mapping
 That will localize the car in a map it is creating (SLAM).
+First, in gmapping package, in gmapping/launch, modify the slam_gmapping_pr2.launch file by commenting this line
+```
+<remap from="scan" to="base_scan"/>
+```
+
+Then you can launch
 ```
 roslaunch gmapping slam_gmapping_pr2.launch scan:=/scan
 ```
+if in real world (default is odom/scan):
+```
+roslaunch gmapping slam_gmapping_pr2.launch 
+```
 
-When done you can download it in maps
+When done you can download it in maps (it download to current directory)
 ```
 rosrun map_server map_saver -f circuit
 ```
+
+You can then see it with
+```
+rosrun f1tenth_simulator waypoint_logger.py show-circuit.pgm
+```
+If you have recorded any waypoints earlier in fichiers_csv/waypoints.csv, they will appear and the map and may be not relevant. The plot is automatically saved in fichiers_csv
+
 
 ## Localization
 Gmapping is doing SLAM. But to be more efficient when the map is created, you can use particle filters algo to localize the car.
