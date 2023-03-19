@@ -69,7 +69,7 @@ if in real world (default is odom/scan):
 roslaunch gmapping slam_gmapping_pr2.launch 
 ```
 
-When done you can download it in maps (it download to current directory)
+When done you can copy it in maps (it download to current directory by default)
 ```
 rosrun map_server map_saver -f circuit
 ```
@@ -78,7 +78,20 @@ You can then see it with
 ```
 rosrun f1tenth_simulator waypoint_logger.py show-circuit.pgm
 ```
+Waypoint_logger has been designed to show both P2 (ASCII) and P5 (binary) .pgm files.
 If you have recorded any waypoints earlier in fichiers_csv/waypoints.csv, they will appear and the map and may be not relevant. The plot is automatically saved in fichiers_csv
+
+## waypoints
+You can see waypoints on a map map.pgm with
+```
+rosrun f1tenth_simulator waypoint_logger.py show-circuit.pgm
+```
+You can select some of them with (replace start and end by indices of waypoints)
+```
+rosrun f1tenth_simulator waypoint_logger.py truncate-start-end
+``` 
+The waypoints.csv is saved and then modified to keep only waypoints between start and end
+
 
 
 ## Localization

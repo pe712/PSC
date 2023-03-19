@@ -19,3 +19,5 @@ rosbag filter file.bag file-no-tf.bag "topic != '/tf' and topic != 'topic2"
 ```
 
 rosbag record -a --exclude "/map" --exclude "/map_metadata"
+
+It seems that even with filtering/exclusion, the rosbag still plays the /map topic...
