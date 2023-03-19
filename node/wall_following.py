@@ -3,13 +3,12 @@ import roslib
 roslib.load_manifest('f1tenth_simulator')
 import sys
 from math import pi, atan2, sin, cos, radians
-import numpy as np
 
 from switching_params import topics
 
 #ROS Imports
 import rospy
-from sensor_msgs.msg import Image, LaserScan
+from sensor_msgs.msg import LaserScan
 from ackermann_msgs.msg import AckermannDriveStamped, AckermannDrive
 
 
