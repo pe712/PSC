@@ -92,7 +92,10 @@ rosrun f1tenth_simulator waypoint_logger.py truncate-start-end
 ``` 
 The waypoints.csv is saved and then modified to keep only waypoints between start and end
 
-
+To record waypoints
+```
+rosrun f1tenth_simulator waypoint_logger.py record
+``` 
 
 ## Localization
 Gmapping is doing SLAM. But to be more efficient when the map is created, you can use particle filters algo to localize the car.
@@ -104,7 +107,7 @@ exporting to pf/pose/odom
 
 ## Planning
 ```
-rosrun f1tenth
+rosrun f1tenth pure pursuit
 
 ```
 

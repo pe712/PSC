@@ -93,7 +93,7 @@ def save_waypoint(data):
     # transform = tfBuffer.lookup_transform("odom", "map", data.header.stamp)
     # pose_transformed = do_transform_pose(data.pose, transform)
     # print(pose_transformed.pose.position.x, data.pose.pose.position.x)
-
+    # print("looping...")
     quaternion = np.array([data.pose.pose.orientation.x, 
                            data.pose.pose.orientation.y, 
                            data.pose.pose.orientation.z, 
@@ -111,8 +111,8 @@ def save_waypoint(data):
                                         speed))
 
 def listener():
-    rospy.Subscriber('/odom', Odometry, save_waypoint)
-    # rospy.Subscriber('pf/odom', Odometry, save_waypoint)
+    # rospy.Subscriber('/odom', Odometry, save_waypoint)
+    rospy.Subscriber('pf/pose/odom', Odometry, save_waypoint)
     rospy.spin()
 
 # ___________________________________ Conserver uniquement les waypoints utiles ___________________________________
@@ -137,8 +137,8 @@ if __name__ == '__main__':
         if args[0]=="record":
             print('Saving waypoints...')
             rospy.init_node('waypoints_logger', anonymous=True)
-            tfBuffer = Buffer()
-            tf_listener = TransformListener(tfBuffer) 
+            # tfBuffer = Buffer()
+            # tf_listener = TransformListener(tfBuffer) 
             with open(node_directory+'/../fichiers_csv/waypoints.csv', 'w') as file:
                 listener()
         elif args[0]=="show":
