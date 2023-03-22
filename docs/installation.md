@@ -36,6 +36,8 @@ export ROS_MASTER_URI=http://localhost:11311
 export ROS_HOSTNAME=localhost
 ```
 
+If you want to use this roscore from another machine on the network, you need to replace `localhost` by your IP (something like `162.168.1.89`)
+
 You MUST set this line to cope with X-launch
 ```sh
 export LIBGL_ALWAYS_INDIRECT=0

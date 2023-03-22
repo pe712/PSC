@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import sys
-from math import tan, degrees, radians, pi, cos, sin, atan
+from math import tan, degrees, radians, pi, cos, sin, sqrt
 
 #ROS Imports
 import rospy
@@ -146,9 +146,11 @@ class reactive_follow_gap:
         else:
             # angle is between 20 and 30, affine function
             factor_angle = 1 + (abs(angle)-radians(20))/(radians(30)-radians(20))*(-1+self.TURN_VELOCITY/self.MAX_VELOCITY)
-            factor_dist = (pi/2+ atan(dist))/pi
-            self.velocity = self.MAX_VELOCITY * factor_angle*factor_dist
+            self.velocity = self.MAX_VELOCITY * factor_angle
+        factor_dist = sqrt(dist)/(sqrt(dist)+1)
+        self.velocity *=factor_dist
         print("max velocity = "+str(self.MAX_VELOCITY)+" distance forward = "+str(dist)+" current velocity cmd = "+str(self.velocity))
+        print("factor dist = "+str(factor_dist))
         drive_msg.drive.speed = self.velocity
         self.drive_pub.publish(drive_msg)
 
