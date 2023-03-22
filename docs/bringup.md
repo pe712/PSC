@@ -74,6 +74,7 @@ exporting to pf/pose/odom
 
 ## Planning
 ```
+rosrun f1tenth
 
 ```
 
