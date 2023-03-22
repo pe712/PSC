@@ -14,5 +14,5 @@ class topics:
         DRIVE = '/vesc/high_level/ackermann_cmd_mux/input/nav_0'
         ODOMETRY = '/vesc/odom'
         SAFETY = '/vesc/low_level/ackermann_cmd_mux/input/safety'
-        SAFETY_BOOL = ""
+        SAFETY_BOOL = "/vesc/low_level/ackermann_cmd_mux/active"
 
