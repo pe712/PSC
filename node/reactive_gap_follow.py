@@ -38,7 +38,7 @@ class reactive_follow_gap:
         self.odom_sub = rospy.Subscriber("/odom", Odometry, self.callback_odom)
         if SIMULATION:
             self.processed_ranges = rospy.Publisher("/processedRanges", LaserScan, queue_size=100)
-            self.targetPointPub = rospy.Publisher('/targetPoint', Marker, queue_size=40)
+            self.target_point_pub = rospy.Publisher('/target_point', Marker, queue_size=40)
             self.edgePub = rospy.Publisher('/edges_array', MarkerArray, queue_size=40)
         """ Should use this instead of doing tf manually
         self.tfBuffer = Buffer()
@@ -132,7 +132,7 @@ class reactive_follow_gap:
             if hasattr(self, 'x'):
                 x = self.x + ranges[best_index]*cos(angle_to_drive+self.angle) + self.DIST_FROM_LIDAR*cos(self.angle)
                 y = self.y + ranges[best_index]*sin(angle_to_drive+self.angle) + self.DIST_FROM_LIDAR*sin(self.angle)
-                simple_markers.create_marker(x, y, self.targetPointPub)
+                simple_markers.create_marker(x, y, self.target_point_pub)
         return angle_to_drive, ranges[best_index]
 
     def publish_drive_msg(self, angle, dist):
