@@ -1,144 +1,114 @@
 #!/usr/bin/env python
 import rospy
 import numpy as np
-import tf
+from math import atan2, sin, cos, sqrt
 from numpy import linalg as LA
+from tf2_ros import Buffer, TransformListener
+from tf2_geometry_msgs import do_transform_pose
+from tf.transformations import euler_from_quaternion
+from utils import simple_markers
 
 from visualization_msgs.msg._Marker import Marker
 from visualization_msgs.msg._MarkerArray import MarkerArray 
-from geometry_msgs.msg import PoseStamped
-from tf.transformations import euler_from_quaternion
 from os.path import dirname
-
+from switching_params import topics
 # TODO: import ROS msg types and libraries
-from sensor_msgs.msg import LaserScan
 from ackermann_msgs.msg import AckermannDriveStamped
 from nav_msgs.msg import Odometry
 
 look_head_distance = 1.5
 kp = 1.2
 file_waypoint = dirname(__file__) + "/../fichiers_csv/waypoints.csv"
-VELOCITY = 5
 
 class PurePursuit(object):
+    VELOCITY = 1.5
     """
     The class that handles pure pursuit.
     """
     def __init__(self):
-   
-        rospy.Subscriber('/odom', Odometry, self.pose_callback)
-
-        self.drive_pub = rospy.Publisher("/nav", AckermannDriveStamped, queue_size=1000)
+        rospy.Subscriber(topics.ODOMETRY, Odometry, self.pose_callback)
+        self.drive_pub = rospy.Publisher(topics.DRIVE, AckermannDriveStamped, queue_size=1000)
         self.way_points_list = np.loadtxt(file_waypoint, delimiter=",", usecols=(0, 1))
-        self.index = -1
-        self.way_points_list=coords
+        self.index = 0
+        self.n = len(self.way_points_list)
 
         # Essai sur les donnees 
-        self.marker_publisher = rospy.Publisher('waypoints', MarkerArray, queue_size=1000)
-        self.marker_publisher_goal = rospy.Publisher('goal_waypoints', Marker, queue_size=1000)
-        self.way_points_marker(self.way_points_list)
+        self.waypoints_publisher = rospy.Publisher('waypoints', MarkerArray, queue_size=1000)
+        self.marker_publisher_goal = rospy.Publisher('target_point', Marker, queue_size=1000)
+        self.way_points_marker()
 
 
-    def way_points_marker(self, way_points_list):
-        markers = MarkerArray()
-        for i in range(len(way_points_list)):  #taille de la liste
-        #  rosmsg show Marker pour les composantes
-            marker = Marker()
-            marker.header.frame_id = 'map' 
-            marker.id = i
-            marker.type = Marker.SPHERE 
-            marker.action = Marker.ADD 
-            marker.pose.position.x = way_points_list[i][0] 
-            marker.pose.position.y = way_points_list[i][1] 
-            marker.pose.position.z = 0 
-            marker.pose.orientation.w = 1.0 
-            marker.scale.x = 0.2 
-            marker.scale.y = 0.2 
-            marker.scale.z = 0.2 
-            marker.color.a = 1.0 
-            marker.color.r = 0
-            marker.color.g = 1
-            marker.color.b = 0
-            marker.lifetime = rospy.Duration()
-            markers.markers.append(marker)
-        self.marker_publisher.publish(markers)
+    def way_points_marker(self):
+        simple_markers.create_marker_array(self.way_points_list, self.waypoints_publisher, persistent=True)
 
-    def goal_marker(self, position):
-        marker = Marker()
-        marker.header.frame_id = 'map' 
-        marker.id = 3100000
-        marker.type = Marker.SPHERE 
-        marker.action = Marker.ADD 
-        marker.pose.position.x = position[0] 
-        marker.pose.position.y = position[1] 
-        marker.pose.position.z = 0 
-        marker.pose.orientation.w = 1.0 
-        marker.scale.x = 0.4 
-        marker.scale.y = 0.4 
-        marker.scale.z = 0.4 
-        marker.color.a = 1.0 
-        marker.color.r = 1
-        marker.color.g = 0
-        marker.color.b = 0
-        self.marker_publisher_goal.publish(marker)
+    def get_closest_way_points(self, current_position):
+        k = 60
+        if self.index+k<self.n:
+            indexes_to_look = [j for j in range(self.index, self.index+k)]
+        else:
+            indexes_to_look = [j for j in range(0, (self.index+k)%self.n)]+[j for j in range(self.index, self.n)]
+        min_dist=np.inf
+        for i in indexes_to_look:
+            point = self.way_points_list[i]
+            dist = sqrt((current_position[0]-point[0])**2+ (current_position[1]-point[1])**2)
+            if dist>look_head_distance and dist<min_dist:
+                self.index = i
+                min_dist = dist
+        if min_dist==np.inf:
+            print("look_head_distance too big")
+            self.index=0
+            point=self.way_points_list[0]
+            return sqrt((current_position[0]-point[0])**2+ (current_position[1]-point[1])**2)
+        else:
+            return min_dist
 
-    def transform_to_robot_frame(self, pose_msg, x_goal_, y_goal_, current_position):
-        quaternion = np.array([pose_msg.pose.pose.orientation.x, 
-                           pose_msg.pose.pose.orientation.y, 
-                           pose_msg.pose.pose.orientation.z, 
-                           pose_msg.pose.pose.orientation.w])
-
-        yaw = tf.transformations.euler_from_quaternion(quaternion)[2]
-        x = x_goal_ - current_position[0]
-        y = y_goal_ - current_position[1]
-        x_goal_robot_frame = x*np.cos(yaw) + y*np.sin(yaw)
-        y_goal_robot_frame = y*np.cos(yaw) - x*np.sin(yaw) 
-        return [x_goal_robot_frame, y_goal_robot_frame]
-
-    def get_closest_way_points(self, way_points_list, current_position):
-        while LA.norm(self.way_points_list[self.index]-current_position, 2) > look_head_distance:
-            self.index += 1
-            if self.index == len(self.way_points_list):
-                self.index = 0
-
-
-    def pose_callback(self, pose_msg):
-        
-        # TODO: find the current waypoint to track using methods mentioned in lecture
-        current_position = np.array([pose_msg.pose.pose.position.x, pose_msg.pose.pose.position.y])
-
-        # avoid backloop
-        if self.index < 0:
-            self.get_closest_way_points(self.way_points_list, current_position)
-
-        # find goal
-        while LA.norm(self.way_points_list[self.index]-current_position, 2) < look_head_distance:
-            self.index += 1
-            if self.index == len(self.way_points_list):
-                self.index = 0
-        
-        # TODO: transform goal point to vehicle frame of reference
-        x_goal_, y_goal_ = self.way_points_list[self.index][0], self.way_points_list[self.index][1]
-        markers_ = MarkerArray()
-        self.goal_marker([x_goal_, y_goal_])
-
-        position_goal = self.transform_to_robot_frame(pose_msg, x_goal_, y_goal_, current_position)
-        distance_goal2 = LA.norm(position_goal, 2)
-
-        # TODO: calculate curvature/steering angle
-        steering_angle = 2 * position_goal[1] / (distance_goal2**2)
-
-        # TODO: publish drive message, don't forget to limit the steering angle between -0.4189 and 0.4189 radians
+    def publish_drive_msg(self, steering_angle):
         drive_msg = AckermannDriveStamped()
         drive_msg.header.stamp = rospy.Time.now()
-        drive_msg.header.frame_id = "odom"
-        drive_msg.drive.steering_angle = kp * steering_angle 
-        drive_msg.drive.speed = VELOCITY * 2 / (2 + abs(steering_angle))
+        drive_msg.header.frame_id = topics.ODOMETRY
+        drive_msg.drive.steering_angle = kp * steering_angle
+        drive_msg.drive.speed = self.VELOCITY * 2 / (2 + abs(steering_angle))
         self.drive_pub.publish(drive_msg)
+
+    def pose_callback(self, pose_msg):
+        pose = pose_msg.pose.pose
+        current_position_map = pose.position
+        current_position_map = [current_position_map.x, current_position_map.y]
+
+        # find goal and avoid backloop 
+        distance_goal = self.get_closest_way_points(current_position_map)
+
+        # goal in map frame
+        goal = self.way_points_list[self.index]
+        print("heading to waypoint "+str(self.index)+" at coordinates (" + str(goal[0]) + ", " + str(goal[1]) + ")")
+        simple_markers.create_marker(goal[0], goal[1], self.marker_publisher_goal)
+
+        # orientation of the car in map frame
+        quaternion = np.array([pose.orientation.x, 
+                           pose.orientation.y, 
+                           pose.orientation.z, 
+                           pose.orientation.w])
+        yaw = euler_from_quaternion(quaternion)[2]
+
+        # direction to the goal in map frame
+        beta = atan2(goal[1]-current_position_map[1], goal[0]-current_position_map[0])
+
+        # goal in base_link frame
+        x = distance_goal * cos(beta-yaw)
+        y = distance_goal * sin(beta-yaw)
+
+        # calculate curvature/steering angle
+        steering_angle = 2 * y / (distance_goal**2)
+
+        # publish drive message, don't forget to limit the steering angle between -0.4189 and 0.4189 radians
+        self.publish_drive_msg(steering_angle)
+        print(steering_angle)
+
 
 def main():
     rospy.init_node('pure_pursuit')
     pp = PurePursuit()
     rospy.spin()
+
 if __name__ == '__main__':
     main()
