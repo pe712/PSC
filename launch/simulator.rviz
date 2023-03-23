@@ -7,8 +7,9 @@ Panels:
         - /Global Options1
         - /Status1
         - /LaserScan1
-        - /LaserScan1/Status1
+        - /Marker8
         - /Marker8/Namespaces1
+        - /MarkerArray1
       Splitter Ratio: 0.5
     Tree Height: 501
   - Class: rviz/Selection
@@ -231,10 +232,10 @@ Visualization Manager:
       Value: false
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /targetPoint
+      Marker Topic: /target_point
       Name: Marker
       Namespaces:
-        {}
+        my_namespace: true
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -311,5 +312,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1907
-  X: -32
+  X: 9
   Y: 68
