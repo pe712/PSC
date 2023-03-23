@@ -240,10 +240,10 @@ Visualization Manager:
       Value: true
     - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /edges_array
+      Marker Topic: /waypoints
       Name: MarkerArray
       Namespaces:
-        {}
+        my_namespace: true
       Queue Size: 100
       Value: true
   Enabled: true
@@ -274,16 +274,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 15.176149368286133
+      Distance: 5.45786714553833
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.15013934671878815
-        Y: -14.265253067016602
-        Z: 4.342602729797363
+        X: 4.200357913970947
+        Y: -10.506678581237793
+        Z: 4.724186420440674
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
