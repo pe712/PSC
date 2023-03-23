@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import sys
-from math import tan, degrees, radians, pi, cos, sin, arc, atan
+from math import tan, degrees, radians, pi, cos, sin, atan
 
 #ROS Imports
 import rospy
@@ -13,7 +13,7 @@ from utils import simple_markers
 from tf2_ros import Buffer, TransformListener
 from tf2_geometry_msgs import do_transform_pose
 
-from params import topics
+from switching_params import topics
 
 CAR_WIDTH = rospy.get_param("f1tenth_simulator/width", 0.0)
 if CAR_WIDTH == 0:
