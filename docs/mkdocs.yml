@@ -1,0 +1,7 @@
+site_name: f1tenth project PSC2022
+theme: readthedocs
+nav:
+  - Bringup : bringup.md
+  - Installation : installation.md
+  - Rosbags : rosbags.md
+  - PurePursuit : purepursuit.md

@@ -1,0 +1,84 @@
+{
+    "docs": [
+        {
+            "location": "/bringup/",
+            "text": "Adapting algorithm for f1tenth_system\n\n\nI heavily suggest you to check \nMoodle_page\n. There are some modification to make (in topics mostly) to adapt simulation algorithms to run on the f1tenth_system\n\n\nrunning the car\n\n\n\n\ntake racecar 2\n\n\nssh to the host (password is nvidia)\n\n\n\n\nHost f1tenth_car_2\n  HostName 192.168.1.22\n  User nvidia\n\n\n\n\n\n\n\n\nwifi tomate and pwd=cornichon\n\n\n\n\n\n\non the car:\n\n\n\n\n\n\nnano ~/.bashrc\n\n\n\n\nWrite (replace 192.168.1.106 by remote PC ip)\n\n\nexport ROS_MASTER_URI=http://192.168.1.106:11311\nexport ROS_HOSTNAME=192.168.1.22\n\n\n\n\nThen run:\n\n\nsource ~/.bashrc\nroslaunch racecar teleop.launch\nrosrun f1tenth_simulator my_node.py\n\n\n\n\n\n\non the remmote PC (in order to be able to launch rqt from remote PC)(replace 192.168.1.106 by remote PC ip):\n\n\n\n\nnano ~/.bashrc\n\n\n\n\nWrite\n\n\nexport ROS_MASTER_URI=http://192.168.1.106:11311\nexport ROS_HOSTNAME=192.168.1.106\n\n\n\n\n\n\nroslaunch racecar teleop.launch\n\n\n\n\nReactive method\n\n\nChoose between\n\n\nrosrun f1tenth_simulator reactive_gap_follow.py\nrosrun f1tenth_simulator wall_following.py\n\n\n\n\nMapping\n\n\nThat will localize the car in a map it is creating (SLAM).\nFirst, in gmapping package, in gmapping/launch, modify the slam_gmapping_pr2.launch file by commenting this line\n\n\n<remap from=\"scan\" to=\"base_scan\"/>\n\n\n\n\nThen you can launch\n\n\nroslaunch gmapping slam_gmapping_pr2.launch scan:=/scan\n\n\n\n\nif in real world (default is odom/scan):\n\n\nroslaunch gmapping slam_gmapping_pr2.launch \n\n\n\n\nWhen done you can copy it in maps (it download to current directory by default)\n\n\nrosrun map_server map_saver -f circuit\n\n\n\n\nYou can then see it with\n\n\nrosrun f1tenth_simulator waypoint_logger.py show-circuit.pgm\n\n\n\n\nWaypoint_logger has been designed to show both P2 (ASCII) and P5 (binary) .pgm files.\nIf you have recorded any waypoints earlier in fichiers_csv/waypoints.csv, they will appear and the map and may be not relevant. The plot is automatically saved in fichiers_csv\n\n\nwaypoints\n\n\nYou can see waypoints on a map map.pgm with\n\n\nrosrun f1tenth_simulator waypoint_logger.py show-circuit.pgm\n\n\n\n\nYou can select some of them with (replace start and end by indices of waypoints)\n\n\nrosrun f1tenth_simulator waypoint_logger.py truncate-start-end\n\n\n\n\nThe waypoints.csv is saved and then modified to keep only waypoints between start and end\n\n\nTo record waypoints\n\n\nrosrun f1tenth_simulator waypoint_logger.py record\n\n\n\n\nLocalization\n\n\nGmapping is doing SLAM. But to be more efficient when the map is created, you can use particle filters algo to localize the car.\nChange map in particle_filter/launch/map_server.launch\n\n\nroslaunch particle_filter localize.launch\n\n\n\n\nexporting to pf/pose/odom\n\n\nPlanning\n\n\nrosrun f1tenth pure pursuit",
+            "title": "Bringup"
+        },
+        {
+            "location": "/bringup/#adapting-algorithm-for-f1tenth_system",
+            "text": "I heavily suggest you to check  Moodle_page . There are some modification to make (in topics mostly) to adapt simulation algorithms to run on the f1tenth_system",
+            "title": "Adapting algorithm for f1tenth_system"
+        },
+        {
+            "location": "/bringup/#running-the-car",
+            "text": "take racecar 2  ssh to the host (password is nvidia)   Host f1tenth_car_2\n  HostName 192.168.1.22\n  User nvidia    wifi tomate and pwd=cornichon    on the car:    nano ~/.bashrc  Write (replace 192.168.1.106 by remote PC ip)  export ROS_MASTER_URI=http://192.168.1.106:11311\nexport ROS_HOSTNAME=192.168.1.22  Then run:  source ~/.bashrc\nroslaunch racecar teleop.launch\nrosrun f1tenth_simulator my_node.py   on the remmote PC (in order to be able to launch rqt from remote PC)(replace 192.168.1.106 by remote PC ip):   nano ~/.bashrc  Write  export ROS_MASTER_URI=http://192.168.1.106:11311\nexport ROS_HOSTNAME=192.168.1.106",
+            "title": "running the car"
+        },
+        {
+            "location": "/bringup/#reactive-method",
+            "text": "Choose between  rosrun f1tenth_simulator reactive_gap_follow.py\nrosrun f1tenth_simulator wall_following.py",
+            "title": "Reactive method"
+        },
+        {
+            "location": "/bringup/#mapping",
+            "text": "That will localize the car in a map it is creating (SLAM).\nFirst, in gmapping package, in gmapping/launch, modify the slam_gmapping_pr2.launch file by commenting this line  <remap from=\"scan\" to=\"base_scan\"/>  Then you can launch  roslaunch gmapping slam_gmapping_pr2.launch scan:=/scan  if in real world (default is odom/scan):  roslaunch gmapping slam_gmapping_pr2.launch   When done you can copy it in maps (it download to current directory by default)  rosrun map_server map_saver -f circuit  You can then see it with  rosrun f1tenth_simulator waypoint_logger.py show-circuit.pgm  Waypoint_logger has been designed to show both P2 (ASCII) and P5 (binary) .pgm files.\nIf you have recorded any waypoints earlier in fichiers_csv/waypoints.csv, they will appear and the map and may be not relevant. The plot is automatically saved in fichiers_csv",
+            "title": "Mapping"
+        },
+        {
+            "location": "/bringup/#waypoints",
+            "text": "You can see waypoints on a map map.pgm with  rosrun f1tenth_simulator waypoint_logger.py show-circuit.pgm  You can select some of them with (replace start and end by indices of waypoints)  rosrun f1tenth_simulator waypoint_logger.py truncate-start-end  The waypoints.csv is saved and then modified to keep only waypoints between start and end  To record waypoints  rosrun f1tenth_simulator waypoint_logger.py record",
+            "title": "waypoints"
+        },
+        {
+            "location": "/bringup/#localization",
+            "text": "Gmapping is doing SLAM. But to be more efficient when the map is created, you can use particle filters algo to localize the car.\nChange map in particle_filter/launch/map_server.launch  roslaunch particle_filter localize.launch  exporting to pf/pose/odom",
+            "title": "Localization"
+        },
+        {
+            "location": "/bringup/#planning",
+            "text": "rosrun f1tenth pure pursuit",
+            "title": "Planning"
+        },
+        {
+            "location": "/installation/",
+            "text": "Vitual linux machine for windows\n\n\nThere are several options to have a linux OS to work with from a windows computer.\n\n\nI suggest you use WSL in order to simulate a linux VM on a windows computer. You can see \nhere\n for more informations about installing WSL. Currently on the car it's ROS \nmelodic\n installed and ROS \nmelodic\n works with Ubuntu 18.04. You should specify that distribution of unix.\n\n\nInstalling ROS \nmelodic\n\n\nI suggest you use the official wiki \nhere\n. Go through each step carefully. It can take some time\nYou should check that your ROS installation is correct by executing some basic commands such as \nroscd\n.\n\n\nAt that point you can start using ROS and looking for some ROS basic tutorials such as \nthese\n. However, you do not have any graphic ressources (you cannot use gazebo or rviz).\n\n\nInstalling graphics\n\n\nAs you are on windows you need to get the graphics of the WSL and display it. For this you need to download a X-launch. This can be a painful step because it can depends on many parameters. After a lot of different tries, we came up with a solution that functions on all our computers.\n\n\nI suggest then that you use \nvcxsrv\n. And you need to set some parameters: \ndisable native opengl\n. Otherwise it do not work.\n\n\nYou also need to set up your \n.bashrc\n file. If you do not know what it is go \nhere\n.\nWith \nnano ~/.bashrc\n:\n\n\nThis line should already be here. If not add it.\n\n\nsource /opt/ros/melodic/setup.bash\n\n\n\n\nWhen you will make your catkin workspace you should add this line\n\n\nsource ~/catkin_ws/devel/setup.bash\n\n\n\n\nTo begin with ROS configuration, you can start with\n\n\nexport ROS_MASTER_URI=http://localhost:11311\nexport ROS_HOSTNAME=localhost\n\n\n\n\nIf you want to use this roscore from another machine on the network, you need to replace \nlocalhost\n by your IP (something like \n162.168.1.89\n)\n\n\nYou MUST set this line to cope with X-launch\n\n\nexport LIBGL_ALWAYS_INDIRECT=0\n\n\n\n\nThis line is just for logging purpose.\n\n\nexport XDG_RUNTIME_DIR=~/Xdisplay/\n\n\n\n\nAt this point you can use gazebo and rviz. For more detailled installation steps you can look at \nthis video\n.\n\n\nInstalling f1tenth simulator\n\n\nYou must be aware that this is the simulatot. It is different from the software installed on the car which is f1tenth_system.\n\n\nTo install f1tenth simulator you should follow official wiki \nhere\n.\n\n\nIDE\n\n\nI suggest you use VScode as an IDE. It integrates features to code in ROS, python or C++. But also it is very powerful to deal with git and remote connection.",
+            "title": "Installation"
+        },
+        {
+            "location": "/installation/#vitual-linux-machine-for-windows",
+            "text": "There are several options to have a linux OS to work with from a windows computer.  I suggest you use WSL in order to simulate a linux VM on a windows computer. You can see  here  for more informations about installing WSL. Currently on the car it's ROS  melodic  installed and ROS  melodic  works with Ubuntu 18.04. You should specify that distribution of unix.",
+            "title": "Vitual linux machine for windows"
+        },
+        {
+            "location": "/installation/#installing-ros-melodic",
+            "text": "I suggest you use the official wiki  here . Go through each step carefully. It can take some time\nYou should check that your ROS installation is correct by executing some basic commands such as  roscd .  At that point you can start using ROS and looking for some ROS basic tutorials such as  these . However, you do not have any graphic ressources (you cannot use gazebo or rviz).",
+            "title": "Installing ROS melodic"
+        },
+        {
+            "location": "/installation/#installing-graphics",
+            "text": "As you are on windows you need to get the graphics of the WSL and display it. For this you need to download a X-launch. This can be a painful step because it can depends on many parameters. After a lot of different tries, we came up with a solution that functions on all our computers.  I suggest then that you use  vcxsrv . And you need to set some parameters:  disable native opengl . Otherwise it do not work.  You also need to set up your  .bashrc  file. If you do not know what it is go  here .\nWith  nano ~/.bashrc :  This line should already be here. If not add it.  source /opt/ros/melodic/setup.bash  When you will make your catkin workspace you should add this line  source ~/catkin_ws/devel/setup.bash  To begin with ROS configuration, you can start with  export ROS_MASTER_URI=http://localhost:11311\nexport ROS_HOSTNAME=localhost  If you want to use this roscore from another machine on the network, you need to replace  localhost  by your IP (something like  162.168.1.89 )  You MUST set this line to cope with X-launch  export LIBGL_ALWAYS_INDIRECT=0  This line is just for logging purpose.  export XDG_RUNTIME_DIR=~/Xdisplay/  At this point you can use gazebo and rviz. For more detailled installation steps you can look at  this video .",
+            "title": "Installing graphics"
+        },
+        {
+            "location": "/installation/#installing-f1tenth-simulator",
+            "text": "You must be aware that this is the simulatot. It is different from the software installed on the car which is f1tenth_system.  To install f1tenth simulator you should follow official wiki  here .",
+            "title": "Installing f1tenth simulator"
+        },
+        {
+            "location": "/installation/#ide",
+            "text": "I suggest you use VScode as an IDE. It integrates features to code in ROS, python or C++. But also it is very powerful to deal with git and remote connection.",
+            "title": "IDE"
+        },
+        {
+            "location": "/purepursuit/",
+            "text": "Algorithme de pure poursuite\n1.  D\u00e9terminer la position actuelle du v\u00e9hicule sur le circuit\n2.  Trouver le point de l\u2019itin\u00e9raire le plus proche du v\u00e9hicule\n3.  Trouver le point d\u2019objectif\n4.  Faire la transformation pour le d\u00e9terminer dans le r\u00e9f\u00e9rentiel du v\u00e9hicule\n5.  Trouver la courbure n\u00e9cessaire pour que le v\u00e9hicule atteigne ce point\n6.  Envoyer la requ\u00eate au v\u00e9hicule pour qu\u2019il modifie sa trajectoire\n7.  Mettre \u00e0 jour les coordonn\u00e9es du v\u00e9hicule\n\n\nFormule pour la pure poursuite :\nGamma = 2x/l\u00b2",
+            "title": "Purepursuit"
+        },
+        {
+            "location": "/rosbags/",
+            "text": "create a bagfiles dir\nuse rosbag record /topic_name\nrosbag record -a -o sample\nthen CTRL+C\n\n\nrosbag play bag_name.bag\n-l for looping\n-r 0.5 speed multiplicator (0.5 is slow)\n\n\nfor example\n\n\nrosbag play -l -r 0.5 --clock sample_2023-03-11-21-16-59.bag \n\n\n\n\nto filter a rosbag to get rid of one topic (/map for example)\n\n\nrosbag filter file.bag file-no-tf.bag \"topic != '/tf' and topic != 'topic2\"\n\n\n\n\nrosbag record -a --exclude \"/map\" --exclude \"/map_metadata\"\n\n\nIt seems that even with filtering/exclusion, the rosbag still plays the /map topic...",
+            "title": "Rosbags"
+        }
+    ]
+}
