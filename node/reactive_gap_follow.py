@@ -19,14 +19,15 @@ from switching_params import topics
 CAR_WIDTH = rospy.get_param("f1tenth_simulator/width", 0.0)
 if CAR_WIDTH == 0:
     CAR_WIDTH = 0.2
-BARRIER_WIDTH = CAR_WIDTH*2
+BARRIER_WIDTH = CAR_WIDTH*1.8
 
 class reactive_follow_gap:
-    MAX_VELOCITY = 3 # Desired maximum velocity in meters per second
-    TURN_VELOCITY = 1.3
-    GAP_DISTANCE = 1.5 # Distance in meters between consecutive lidar beams to consider there is an edge here
+    MAX_VELOCITY = 3.5 # Desired maximum velocity in meters per second
+    TURN_VELOCITY = 2.5
+    GAP_DISTANCE = 0.5 # Distance in meters between consecutive lidar beams to consider there is an edge here
     MAX_DISTANCE = 40 # The maximum possible distance in the map, greater is an error
     MAX_ROT = pi/3 #the maximum rotation allowed to avoid going backward
+    DECELARATION_POWER = 0.6
     DIST_FROM_LIDAR = rospy.get_param("f1tenth_simulator/scan_distance_to_base_link", 0.0)
     n=0
     def __init__(self):
@@ -147,7 +148,7 @@ class reactive_follow_gap:
             # angle is between 20 and 30, affine function
             factor_angle = 1 + (abs(angle)-radians(20))/(radians(30)-radians(20))*(-1+self.TURN_VELOCITY/self.MAX_VELOCITY)
             self.velocity = self.MAX_VELOCITY * factor_angle
-        factor_dist = sqrt(dist)/(sqrt(dist)+1)
+        factor_dist = dist**self.DECELARATION_POWER/(dist**self.DECELARATION_POWER+1)
         self.velocity *=factor_dist
         print("max velocity = "+str(self.MAX_VELOCITY)+" distance forward = "+str(dist)+" current velocity cmd = "+str(self.velocity))
         print("factor dist = "+str(factor_dist))
