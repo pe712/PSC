@@ -11,10 +11,18 @@ nav:
     - Rosbags: rosbags.md
 
 # mkdocstring python library is for python >= 3
+
 plugins:
-  - search
-  - mkdocstrings:
-    default_handler: python
+- mkdocstrings:
     handlers:
       python:
         paths: [../node]
+
+
+# plugins:
+#   - search
+#   - mkdocstrings:
+#     default_handler: python
+#     handlers:
+#       python:
+#         paths: [../node]
