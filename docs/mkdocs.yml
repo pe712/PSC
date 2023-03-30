@@ -19,6 +19,5 @@ plugins:
     handlers:
       python:
         search_depth: 2
-        paths:
-          - ../node/
+        paths: [../node]
 
