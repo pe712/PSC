@@ -13,7 +13,7 @@ nav:
 # mkdocstring python library is for python >= 3
 plugins:
   - search
-  - mkdocstrings
+  - mkdocstrings:
     default_handler: python
     handlers:
       python:
