@@ -1,2 +1,2 @@
-::: AEB.AEB
+::: node.AEB
     handler: python
