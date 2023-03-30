@@ -18,6 +18,7 @@ plugins:
     default_handler: python
     handlers:
       python:
-        paths: [../node]
-  
+        search_depth: 2
+        paths:
+          - ../node/
 
