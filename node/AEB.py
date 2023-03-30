@@ -31,9 +31,14 @@ class AEB:
         self.velocity=0
 
     def callback_scan(self, data):
+        """
+        We affect the distance in each direaction of a factor cos(angle) to calculate the time to collision to the obstacle in that direction if the car continues forward
+
+        Args:
+            data (LaserScan): LaserScan from Lidar
+        """
         scanner = data.ranges
-        # we take into account the angle that will mofidiy the speed
-        n = len(scanner)
+        # 
         directionned_scanner = []
         for i, distance in enumerate(scanner):
             angle = data.angle_min + data.angle_increment*i
@@ -41,18 +46,27 @@ class AEB:
         self.breaking(directionned_scanner)
 
     def callback_odom(self, data):
+        """Updates velocity field
+
+        Args:
+            data (Odometry): Odometry from the VESC
+        """
         self.velocity = data.twist.twist.linear.x
 
     def breaking(self, directionned_scanner):
+        """
+        Decide wether to stop the car or not
+
+        Args:
+            directionned_scanner (list): Precomputed Lidarscan
+        """
         # print(str(directionned_scanner))
         # print(self.velocity)
-        # We need to keep in memory the velocity because it can change during calculation
-        speed = self.velocity
-        # print(speed)
-        if speed==0:
+        # print(self.velocity)
+        if self.velocity==0:
             return
         for distance in directionned_scanner:
-            timeToCollision = distance/speed
+            timeToCollision = distance/self.velocity
             if (timeToCollision>0 and timeToCollision<self.MINIMUM_TTC) or abs(distance)<self.MINIMUM_DISTANCE:
                 if (abs(distance)<self.MINIMUM_DISTANCE):
                     print("too close")
@@ -66,6 +80,9 @@ class AEB:
         # print(timeToCollision, self.velocity)
 
     def emergency_stop(self):
+        """
+        Published stop message and taking control over navigation mux channel
+        """
         msg = AckermannDriveStamped()
         msg.drive.speed = 0
         self.brake_pub.publish(msg)
