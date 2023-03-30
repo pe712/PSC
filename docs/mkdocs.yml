@@ -10,6 +10,11 @@ nav:
     - PurePursuit: purepursuit.md
     - Rosbags: rosbags.md
 
+# mkdocstring python library is for python >= 3
 plugins:
   - search
   - mkdocstrings
+    default_handler: python
+    handlers:
+      python:
+        paths: [../node]
