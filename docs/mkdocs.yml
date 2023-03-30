@@ -21,5 +21,4 @@ plugins:
         search_depth: 2
         paths: 
           - ../
-          - ../node
 
