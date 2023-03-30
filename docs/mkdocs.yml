@@ -1,5 +1,5 @@
 site_name: f1tenth project PSC2022
-theme: readthedocs
+# theme: readthedocs
 site_url: https://example.com/
 docs_dir: docs
 # use pages instead of nav for mkdocs versions <= 1.0
