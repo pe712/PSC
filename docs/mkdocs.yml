@@ -2,6 +2,8 @@ site_name: f1tenth project PSC2022
 theme: readthedocs
 site_url: https://example.com/
 docs_dir: docs
+extra_css:
+  - custom.css
 # use pages instead of nav for mkdocs versions <= 1.0
 nav:
     - Home: index.md
@@ -11,7 +13,6 @@ nav:
     - Rosbags: rosbags.md
 
 # mkdocstring python library is for python >= 3
-
 plugins:
 - search
 - mkdocstrings:
@@ -22,6 +23,4 @@ plugins:
         paths: 
           - ../
 
-extra_css:
-  - custom.css
 
