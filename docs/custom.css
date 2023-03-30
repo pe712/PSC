@@ -1,0 +1,8 @@
+#mkdocs-show-source {
+    display: none;
+}
+
+.doc-heading{
+    margin-top: 1cm;
+    color: red;
+}
