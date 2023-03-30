@@ -16,8 +16,8 @@ plugins:
 - search
 - mkdocstrings:
     default_handler: python
-    handlers:
-      python:
-        search_depth: 2
-        paths: [../node]
+    # handlers:
+    #   python:
+    #     search_depth: 2
+    #     paths: [../node]
 
