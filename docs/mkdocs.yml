@@ -1,7 +1,11 @@
 site_name: f1tenth project PSC2022
 theme: readthedocs
-nav:
-  - Bringup : bringup.md
-  - Installation : installation.md
-  - Rosbags : rosbags.md
-  - PurePursuit : purepursuit.md
+site_url: https://example.com/
+docs_dir: docs
+# use nav instead of pages for mkdocs versions >= 1.0
+pages:
+    - Home: index.md
+    - Installation: installation.md
+    - Bringup: bringup.md
+    - PurePursuit: purepursuit.md
+    - Rosbags: rosbags.md
