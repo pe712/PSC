@@ -14,6 +14,7 @@ nav:
 
 plugins:
 - mkdocstrings:
+    default_handler: python
     handlers:
       python:
         paths: [../node]
@@ -22,7 +23,6 @@ plugins:
 # plugins:
 #   - search
 #   - mkdocstrings:
-#     default_handler: python
 #     handlers:
 #       python:
 #         paths: [../node]
