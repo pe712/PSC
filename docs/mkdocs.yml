@@ -9,3 +9,7 @@ nav:
     - Bringup: bringup.md
     - PurePursuit: purepursuit.md
     - Rosbags: rosbags.md
+
+plugins:
+  - search
+  - mkdocstrings
