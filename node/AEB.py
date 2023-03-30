@@ -13,7 +13,7 @@ from switching_params import topics
 from switcher import SIMULATION
 
 class AEB:
-    MINIMUM_TTC = 0.25
+    MINIMUM_TTC = 0.22
     MINIMUM_DISTANCE = 0.2 
     def __init__(self):
         self.odom_sub = rospy.Subscriber(topics.ODOMETRY, Odometry, self.callback_odom)
@@ -43,18 +43,22 @@ class AEB:
         # print(self.velocity)
         # We need to keep in memory the velocity because it can change during calculation
         speed = self.velocity
-        print(speed)
+        # print(speed)
         if speed==0:
             return
         for distance in directionned_scanner:
             timeToCollision = distance/speed
-            if (timeToCollision>0 and timeToCollision<0.3) or abs(distance)<self.MINIMUM_DISTANCE:
+            if (timeToCollision>0 and timeToCollision<self.MINIMUM_TTC) or abs(distance)<self.MINIMUM_DISTANCE:
+                if (abs(distance)<self.MINIMUM_DISTANCE):
+                    print("too close")
+                if (timeToCollision>0 and timeToCollision<self.MINIMUM_TTC):
+                    print("too fast ", timeToCollision, "s to collision")
                 self.emergency_stop()
                 break
         else:
             if SIMULATION:
                 self.brake_bool_pub.publish(Bool(False))
-        print(timeToCollision, self.velocity)
+        # print(timeToCollision, self.velocity)
 
     def emergency_stop(self):
         msg = AckermannDriveStamped()
