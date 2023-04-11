@@ -1,8 +1,8 @@
-from math import radians
+from math import radians, log
 
-class speed_factor:
+class speed_computation:
     
-    def __init__(self, MAX_VELOCITY, TURN_VELOCITY, HIGH_ANGLE=radians(30), V_HIGH_ANGLE=radians(20), DECELARATION_POWER=0.6) -> None:
+    def __init__(self, max_velocity, turn_velocity, deceleration_dist=1.0, high_angle=radians(30), v_high_angle=radians(20), deceleration_power=0.5):
         """
 
         Args:
@@ -12,11 +12,14 @@ class speed_factor:
             V_HIGH_ANGLE (float): For turn angle teta>=V_HIGH_ANGLE is at speed TURN_VELOCITY
             DECELARATION_POWER (float): Constant used for the computation of deceleration based on distance
         """
-        self.MAX_VELOCITY=MAX_VELOCITY
-        self.TURN_VELOCITY=TURN_VELOCITY
-        self.HIGH_ANGLE=HIGH_ANGLE
-        self.V_HIGH_ANGLE=V_HIGH_ANGLE
-        self.DECELARATION_POWER=DECELARATION_POWER
+        # data from test:
+        self.REF_MAX_VELOCITY = 2.5 # for deceleration_power = 0.5
+        self.MAX_VELOCITY=max_velocity
+        self.TURN_VELOCITY=turn_velocity
+        self.HIGH_ANGLE=high_angle
+        self.V_HIGH_ANGLE=v_high_angle
+        self.DECELERATION_DIST = deceleration_dist
+        self.DECELARATION_POWER=deceleration_power
     
     def speed(self, angle, dist):
         """
@@ -25,7 +28,7 @@ class speed_factor:
         Args:
             angle (float): turn angle (radians)
             dist (float): distance to goal = distance measured by lidar in direction angle
-        
+
         Returns:
             float: desired velocity
         """
@@ -36,6 +39,9 @@ class speed_factor:
         else:
             # angle is between 20 and 30, affine function
             factor_angle = 1 + (abs(angle)-radians(20))/(radians(30)-radians(20))*(-1+self.TURN_VELOCITY/self.MAX_VELOCITY)
-        factor_dist = dist**self.DECELARATION_POWER/(dist**self.DECELARATION_POWER+1)
-        return self.MAX_VELOCITY * factor_angle * factor_dist
-    
+        factor_dist = self.distance_factor(dist)
+        return min(self.REF_MAX_VELOCITY * factor_angle * factor_dist, self.MAX_VELOCITY * factor_angle)
+
+    def distance_factor(self, dist):
+        normalized_dist = dist/self.DECELERATION_DIST
+        return normalized_dist**self.DECELARATION_POWER 

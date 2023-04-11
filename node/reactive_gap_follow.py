@@ -8,18 +8,23 @@ from sensor_msgs.msg import LaserScan
 from ackermann_msgs.msg import AckermannDriveStamped
 from visualization_msgs.msg import Marker, MarkerArray
 from nav_msgs.msg import Odometry
+from std_msgs.msg import Float64
 from tf.transformations import euler_from_quaternion
 from utils import simple_markers
 from tf2_ros import Buffer, TransformListener
 from tf2_geometry_msgs import do_transform_pose
 from switcher import SIMULATION
+from speed import speed_computation
 
 from switching_params import topics
 
 CAR_WIDTH = rospy.get_param("f1tenth_simulator/width", 0.0)
 if CAR_WIDTH == 0:
     CAR_WIDTH = 0.2
-BARRIER_WIDTH = CAR_WIDTH*1.8
+if SIMULATION:
+    BARRIER_WIDTH = CAR_WIDTH*2.5
+else:
+    BARRIER_WIDTH = CAR_WIDTH*1.8
 
 class reactive_follow_gap:
     MAX_VELOCITY = 3.5 # Desired maximum velocity in meters per second
@@ -27,7 +32,6 @@ class reactive_follow_gap:
     GAP_DISTANCE = 0.5 # Distance in meters between consecutive lidar beams to consider there is an edge here
     MAX_DISTANCE = 40 # The maximum possible distance in the map, greater is an error
     MAX_ROT = pi/3 #the maximum rotation allowed to avoid going backward
-    DECELARATION_POWER = 0.6
     DIST_FROM_LIDAR = rospy.get_param("f1tenth_simulator/scan_distance_to_base_link", 0.0)
     n=0
     def __init__(self):
@@ -35,7 +39,9 @@ class reactive_follow_gap:
         self.lidar_sub = rospy.Subscriber(topics.LIDARSCAN, LaserScan, self.lidar_callback)
         self.drive_pub = rospy.Publisher(topics.DRIVE, AckermannDriveStamped, queue_size=10)
         self.last_callback = rospy.get_time()
-        self.odom_sub = rospy.Subscriber("/odom", Odometry, self.callback_odom)
+        self.odom_sub = rospy.Subscriber(topics.ODOMETRY, Odometry, self.callback_odom)
+        self.closest_obstacle_sub = rospy.Subscriber(topics.CLOSEST_OBSTACLE, Float64, self.callback_closest_obstacle)
+        self.speed = speed_computation(self.MAX_VELOCITY, self.TURN_VELOCITY)
         if SIMULATION:
             self.processed_ranges = rospy.Publisher("/processedRanges", LaserScan, queue_size=100)
             self.target_point_pub = rospy.Publisher('/target_point', Marker, queue_size=40)
@@ -140,19 +146,9 @@ class reactive_follow_gap:
         drive_msg.header.stamp = rospy.Time.now()
         drive_msg.header.frame_id = "laser"
         drive_msg.drive.steering_angle = angle
-        if (abs(angle)<radians(20)):
-            self.velocity = self.MAX_VELOCITY
-        elif (abs(angle)>radians(30)):
-            self.velocity = self.TURN_VELOCITY
-        else:
-            # angle is between 20 and 30, affine function
-            factor_angle = 1 + (abs(angle)-radians(20))/(radians(30)-radians(20))*(-1+self.TURN_VELOCITY/self.MAX_VELOCITY)
-            self.velocity = self.MAX_VELOCITY * factor_angle
-        factor_dist = dist**self.DECELARATION_POWER/(dist**self.DECELARATION_POWER+1)
-        self.velocity *=factor_dist
-        print("max velocity = "+str(self.MAX_VELOCITY)+" distance forward = "+str(dist)+" current velocity cmd = "+str(self.velocity))
-        print("factor dist = "+str(factor_dist))
-        drive_msg.drive.speed = self.velocity
+        velocity  = self.speed.speed(angle, self.dist_closest_obstacle)
+        print("max velocity = "+str(self.MAX_VELOCITY), "distance forward = "+str(dist), "distance closest_obstacle "+str(self.dist_closest_obstacle), "current velocity cmd = "+str(velocity))
+        drive_msg.drive.speed = velocity
         self.drive_pub.publish(drive_msg)
 
     def callback_odom(self, data):
@@ -167,6 +163,9 @@ class reactive_follow_gap:
         self.y = data.pose.pose.position.y
         o = data.pose.pose.orientation
         self.angle = euler_from_quaternion([o.x, o.y, o.z, o.w])[2] """
+
+    def callback_closest_obstacle(self, data):
+        self.dist_closest_obstacle = data.data
 
     def lidar_callback(self, data):
         """ Process each LiDAR scan as per the Follow Gap algorithm & publish an AckermannDriveStamped Message
