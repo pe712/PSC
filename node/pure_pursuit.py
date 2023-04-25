@@ -10,7 +10,7 @@ from utils import simple_markers
 
 from visualization_msgs.msg._Marker import Marker
 from visualization_msgs.msg._MarkerArray import MarkerArray 
-from os.path import dirname
+from os.path import dirname, realpath
 from switching_params import topics
 # TODO: import ROS msg types and libraries
 from ackermann_msgs.msg import AckermannDriveStamped
@@ -18,7 +18,8 @@ from nav_msgs.msg import Odometry
 
 look_head_distance = 1.5
 kp = 1.2
-file_waypoint = dirname(__file__) + "/../fichiers_csv/waypoints.csv"
+file_waypoint = dirname(realpath(__file__)) + "/../fichiers_csv/waypoints.csv"
+print(__file__)
 
 class PurePursuit(object):
     VELOCITY = 1.5
@@ -26,11 +27,11 @@ class PurePursuit(object):
     The class that handles pure pursuit.
     """
     def __init__(self):
-        rospy.Subscriber(topics.ODOMETRY, Odometry, self.pose_callback)
-        self.drive_pub = rospy.Publisher(topics.DRIVE, AckermannDriveStamped, queue_size=1000)
-        self.way_points_list = np.loadtxt(file_waypoint, delimiter=",", usecols=(0, 1))
         self.index = 0
+        self.way_points_list = np.loadtxt(file_waypoint, delimiter=",", usecols=(0, 1))
         self.n = len(self.way_points_list)
+        self.drive_pub = rospy.Publisher(topics.DRIVE, AckermannDriveStamped, queue_size=1000)
+        rospy.Subscriber(topics.ODOMETRY, Odometry, self.pose_callback)
 
         # Essai sur les donnees 
         self.waypoints_publisher = rospy.Publisher('waypoints', MarkerArray, queue_size=1000)

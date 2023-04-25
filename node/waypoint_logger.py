@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import numpy as np
-from os.path import dirname
+from os.path import dirname, realpath
 from os import rename
 from tf.transformations import euler_from_quaternion
 from nav_msgs.msg import Odometry
@@ -128,7 +128,7 @@ def tronque_boucle_csv(start, end):
 
 
 if __name__ == '__main__':
-    node_directory = dirname(__file__)
+    node_directory = dirname(realpath(__file__))
     ui_msg="The only arguments allowed are 'record' 'truncate-start-stop' and 'show-map_filename'\nExamples\n./waypoint_logger.py record\n./waypoint_logger.py show-circuit.pgm\n./waypoint_logger.py truncate-57-230"
     if len(argv)!=2:
         print(ui_msg)
