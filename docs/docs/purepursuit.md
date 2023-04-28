@@ -1,4 +1,4 @@
-Algorithme de pure poursuite
+Fonctionnement de l'algorithme de pure poursuite
 1.	Déterminer la position actuelle du véhicule sur le circuit
 2.	Trouver le point de l’itinéraire le plus proche du véhicule
 3.	Trouver le point d’objectif
