@@ -1,0 +1,30 @@
+.doc-function * {
+    margin-bottom: 8px;
+    margin-left: px
+}
+
+.rst-content h3 {
+    margin-bottom: 8px;
+}
+
+.rst-content h2 code {
+    font-size: x-large;
+}
+
+.rst-content h2 code::before {
+    content: "class: ";
+    font-size: large;
+}
+
+.doc-function {
+    margin-top: 30px;
+}
+
+summary {
+    display: none
+}
+
+div.doc-contents:not(.first) {
+    padding-left: 25px;
+    border-left: .05rem solid rgba(200, 200, 200, 0.8);
+}
