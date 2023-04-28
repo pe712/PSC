@@ -4,7 +4,7 @@ from switcher import SIMULATION
 
 class topics:
     LIDARSCAN = '/scan'
-
+    CLOSEST_OBSTACLE = '/closest_obstacle'
     if SIMULATION:
         DRIVE = '/nav'
         ODOMETRY = '/odom'
