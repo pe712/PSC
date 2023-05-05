@@ -1,14 +1,14 @@
-Fonctionnement théorique de l'algorithme de pure poursuite
+Theoretical operation of the pure pursuit algorithm
 # Pure Pursuit
-1. Déterminer la position actuelle du véhicule sur le circuit
-2. Trouver le point de l’itinéraire le plus proche du véhicule
-3. Trouver le point d’objectif
-4. Faire la transformation pour le déterminer dans le référentiel du véhicule
-5. Trouver la courbure nécessaire pour que le véhicule atteigne ce point
-6. Envoyer la requête au véhicule pour qu’il modifie sa trajectoire
-7. Mettre à jour les coordonnées du véhicule
+1. Determine the current position of the vehicle on the track
+2. Find the closest point on the route to the vehicle
+3. Find the goal point
+4. Make the transformation to determine it in the vehicle frame of reference
+5. Find the necessary curvature for the vehicle to reach this point
+6. Send the request to the vehicle to modify its trajectory
+7. Update the coordinates of the vehicle
 
-Formule pour la pure poursuite :
+Formula for pure tracking:
 Gamma = 2x/l²
 
-Vous pouvez voir l'implémentation [ici](https://github.com/pe712/PSC/blob/main/node/pure_pursuit.py)
+You can see the implementation [here](https://github.com/pe712/PSC/blob/main/node/pure_pursuit.py)
