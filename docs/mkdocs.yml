@@ -11,6 +11,7 @@ nav:
     - Bringup: bringup.md
     - PurePursuit: purepursuit.md
     - Rosbags: rosbags.md
+    - Main classes: main_classes.md
 
 # mkdocstring python library is for python >= 3
 plugins:

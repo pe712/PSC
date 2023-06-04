@@ -7,7 +7,8 @@ from math import cos
 from sensor_msgs.msg import LaserScan
 from ackermann_msgs.msg import AckermannDriveStamped
 from nav_msgs.msg import Odometry
-from std_msgs.msg import Bool, String
+from std_msgs.msg import Bool, String, Float64
+from numpy import inf
 
 from switching_params import topics
 from switcher import SIMULATION
@@ -25,6 +26,7 @@ class AEB:
         self.odom_sub = rospy.Subscriber(topics.ODOMETRY, Odometry, self.callback_odom)
         self.scan_sub = rospy.Subscriber(topics.LIDARSCAN, LaserScan, self.callback_scan)
         self.brake_pub = rospy.Publisher(topics.SAFETY, AckermannDriveStamped, queue_size=10)
+        self.closest_obstacle_pub = rospy.Publisher(topics.CLOSEST_OBSTACLE, Float64, queue_size=10)
         if SIMULATION:
             self.brake_bool_pub = rospy.Publisher(topics.SAFETY_BOOL, Bool, queue_size=10)
         else:
@@ -61,9 +63,13 @@ class AEB:
         Args:
             directionned_scanner (list): Precomputed Lidarscan
         """
+        msg = Float64()
         # print(str(directionned_scanner))
         # print(self.velocity)
         # print(self.velocity)
+        msg.data = min(directionned_scanner, key=self.__cut_negative)
+        print("distance mini", msg.data, self.velocity)
+        self.closest_obstacle_pub.publish(msg)
         if self.velocity==0:
             return
         for distance in directionned_scanner:
@@ -78,7 +84,12 @@ class AEB:
         else:
             if SIMULATION:
                 self.brake_bool_pub.publish(Bool(False))
-        # print(timeToCollision, self.velocity)
+    
+    def __cut_negative(self, float_number):
+        if (float_number<0):
+            return inf
+        else:
+            return float_number
 
     def emergency_stop(self):
         """

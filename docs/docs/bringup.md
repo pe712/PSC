@@ -13,7 +13,7 @@ Host f1tenth_car_2
   User nvidia
 ```
 
-* wifi tomate and pwd=cornichon
+* connect to the configured wifi (ask mainteners for password)
 
 * on the car:
 ```sh
