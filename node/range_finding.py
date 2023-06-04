@@ -6,7 +6,8 @@ import random as rd
 from time import time
 
 class range_finding:
-    """Traite la donnée ranges de /scan pour fournir le gap optimal
+    """
+    Traite la donnée ranges de /scan pour fournir le gap optimal. This is the most costly step of reactive gap follow algorithm. 
     """
     def __init__(self, ranges, desired_width):
         self.desired_width=desired_width
@@ -19,6 +20,17 @@ class range_finding:
     Renvoie l'index de début et de fin du gap et sa profondeur
     """
     def find_range(self):
+        """
+        Returns optimal gap (the furthest).
+
+        It explores laser beams by decreasing distance to obstacle and try to find a gap around it.
+
+        Raises:
+            Exception: Impossible to find optimal gap
+
+        Returns:
+            tuple(int, int, float): (start, stop, distance) indexes of the gap found and the depth of the gap (closest obstacle in the gap)
+        """
         for index_range, distance in self.sorted_ranges:
             # min_range_count = int(atan2(desired_width, distance)/data.angle_increment)
             min_range_count = int(80/distance)
@@ -27,11 +39,18 @@ class range_finding:
                 return gap_range+ (distance,)
         raise Exception("Impossible to find optimal gap")
 
-    """Renvoie le plus grand gap possible autour de index_range
-    Il doit être plus profond que distance, et plus large en nombre d'indices que min_range_count
-    Si impossible, renvoie None
-    """
     def possible_range(self, index_range, min_range_count, distance):
+        """
+        Finds the largest gap around the index_range laser beam. This gap needs to be further than distance. It also needs to have more indices (be wide enough) than min_range_count. Otherwise return None
+
+        Args:
+            index_range (int): index of the laser beam considered
+            min_range_count (int): minimum width of the gap
+            distance (float): closest allowed distance
+
+        Returns:
+            tuple(int, int): (start, stop) indexes of the gap found
+        """
         start = self.ending_point(-1, index_range, min_range_count, distance)
         stop = self.ending_point(1, index_range, min_range_count, distance)
         if stop-start>min_range_count:
@@ -40,6 +59,18 @@ class range_finding:
             return None
 
     def ending_point(self, sign, index_range, min_range_count, distance):
+        """
+        Finds the ending point of the gap on the side given by sign. The gap needs to be further than distance. It also needs to have more indices (be wide enough) than min_range_count.
+
+        Args:
+            sign (int): 1 if we are looking for a gap on the increasing index side. -1 otherwise.
+            index_range (int): index of the laser beam considered
+            min_range_count (int): minimum width of the gap
+            distance (float): closest allowed distance
+
+        Returns:
+            int: index of the ending beam of the gap considered
+        """
         if sign==1:
             t_stop = min(len(ranges), index_range+min_range_count*sign)
         else:
@@ -50,6 +81,9 @@ class range_finding:
         return t_stop
 
 
+"""
+Short example with data representation to understand how the optimal gap is found.
+"""
 if __name__=="__main__":
     # desired_width = 3 * car_width
     start =time()
