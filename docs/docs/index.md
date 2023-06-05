@@ -5,6 +5,7 @@ This is the documentation of [this project](https://github.com/pe712/PSC). It is
 Note that we avoided writting code and documentation specific to our racecar configuration as much as possible. However, there is probably a lot of adaptation if you want to use this repository in a different lab.
 
 You will find documentation about :
+
 - installation (which is painful)
 - bringup (how to use our source code)
 - purepursuit algorithm (theory)

@@ -7,6 +7,7 @@ Take the time to go step by step. Otherwise you won't be able to determine which
 If your machine is running on a unix distribution (linux or MacOS for example) you can skip this step.
 
 If your machine is a windows you have several options to set up a unix OS:
+
 - Windows subsystem for linux (WSL) **(recommended)**
 - dual boot
 - softwares such as VMWare, Hyper-V (Gen2), VirtualBox et Parallels
