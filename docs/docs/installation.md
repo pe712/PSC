@@ -86,4 +86,4 @@ I suggest you use VScode as an IDE. It integrates features to code in ROS, pytho
 
 # Conclusion
 
-Well done, you can start using ros, the f1tenth simulator and with some effort you can also play with the racecar.
+Well done, you can start using ros, the f1tenth simulator and you can also play with the racecar.

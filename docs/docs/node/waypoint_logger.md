@@ -6,6 +6,11 @@ To see how to use this node try 'rosrun waypoint_logger.py' to have further expl
 
     :::node.waypoint_logger.plot_fig
 
+`func: save_waypoint`
+
 :::node.waypoint_logger.save_waypoint
+
+`func: tronque_boucle_csv`
+
 :::node.waypoint_logger.tronque_boucle_csv
 

@@ -8,9 +8,9 @@ extra_css:
 nav:
     - Home: index.md
     - Installation: installation.md
-    - Bringup: bringup.md
-    - Rosbags: rosbags.md
     - Simulation: simulation.md
+    - Racecar: racecar.md
+    - Our algorithms: algorithms.md
     - Main classes: 
       - AEB: node/AEB.md
       - Pure_pursuit: node/pure_pursuit.md
@@ -22,6 +22,7 @@ nav:
       - Utils: node/utils.md
       - Wall_following: node/wall_following.md
       - Waypoint_logger: node/waypoint_logger.md
+    - Rosbags: rosbags.md
 
 # mkdocstring python library is for python >= 3
 plugins:
