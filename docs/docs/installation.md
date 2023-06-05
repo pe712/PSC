@@ -82,3 +82,7 @@ To install f1tenth simulator you should follow official wiki [here](https://f1te
 # IDE
 
 I suggest you use VScode as an IDE. It integrates features to code in ROS, python or C++. But also it is very powerful to deal with git, WSL and remote connection. For those uses, you need to download the corresponding extensions.
+
+# Conclusion
+
+Well done, you can start using ros, the f1tenth simulator and with some effort you can also play with the racecar.

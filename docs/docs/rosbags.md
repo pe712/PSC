@@ -1,3 +1,5 @@
+# Introduction
+
 This is a quick introduction to rosbags and how to use them. Rosbags are used to record every message sent to certain topics during a ros execution. Thanks to that record, it is possible to run the exact same situation to understand the issue.
 
 You can have more detailled information about rosbags commands [here](http://wiki.ros.org/rosbag/Commandline) and some advanced examples [here](http://wiki.ros.org/rosbag/Cookbook)

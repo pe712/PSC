@@ -10,6 +10,7 @@ nav:
     - Installation: installation.md
     - Bringup: bringup.md
     - Rosbags: rosbags.md
+    - Simulation: simulation.md
     - Main classes: 
       - AEB: node/AEB.md
       - Pure_pursuit: node/pure_pursuit.md
