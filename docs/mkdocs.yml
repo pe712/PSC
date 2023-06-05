@@ -13,8 +13,8 @@ nav:
     - Main classes: 
       - AEB: node/AEB.md
       - Pure_pursuit: node/pure_pursuit.md
-      - Range_finding: node/pange_finding.md
-      - Reactive_gap_follow: node/teactive_gap_follow.md
+      - Range_finding: node/range_finding.md
+      - Reactive_gap_follow: node/reactive_gap_follow.md
       - Speed: node/speed.md
       - Switcher: node/switcher.md
       - Switching_params: node/switching_params.md
