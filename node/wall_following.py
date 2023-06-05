@@ -19,18 +19,18 @@ class WallFollow:
     Implements Wall Following on the car.
 
     Attributes:
-    DESIRED_DISTANCE_RIGHT (float): desired distance from the right wall in meters
-    DESIRED_DISTANCE_LEFT (float): desired distance from the left wall in meters
-    MAX_VELOCITY (float): desired maximum velocity in meters per second
-    KU (float): ultimate gain for tuning the PID controller
-    TU (float): ultimate period for tuning the PID controller in seconds
-    KP (float): proportional gain for the PID controller
-    KI (float): integral gain for the PID controller
-    KD (float): derivative gain for the PID controller
-    average_delta_callback (float): average delta time between lidar callbacks
-    prev_error (float): previous error for the PID controller
-    integral (float): integral term for the PID controller
-    velocity (float): current velocity of the car
+        DESIRED_DISTANCE_RIGHT (float): desired distance from the right wall in meters
+        DESIRED_DISTANCE_LEFT (float): desired distance from the left wall in meters
+        MAX_VELOCITY (float): desired maximum velocity in meters per second
+        KU (float): ultimate gain for tuning the PID controller
+        TU (float): ultimate period for tuning the PID controller in seconds
+        KP (float): proportional gain for the PID controller
+        KI (float): integral gain for the PID controller
+        KD (float): derivative gain for the PID controller
+        average_delta_callback (float): average delta time between lidar callbacks
+        prev_error (float): previous error for the PID controller
+        integral (float): integral term for the PID controller
+        velocity (float): current velocity of the car
     """
 
     DESIRED_DISTANCE_RIGHT = 0.9 # meters

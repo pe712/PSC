@@ -1,6 +1,6 @@
-# Content
+# switcher.py
 
-This file is supposed to contain only one line :
+The file `switcher.py` is supposed to contain only one line :
 ```py
 SIMULATION = True
 ```

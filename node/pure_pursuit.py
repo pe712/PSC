@@ -18,16 +18,16 @@ from nav_msgs.msg import Odometry
 
 
 class PurePursuit(object):
-    look_head_distance = 1.5
-    kp = 1.2
-    file_waypoint = dirname(__file__) + "/../fichiers_csv/waypoints.csv"
-    VELOCITY = 1.5
     """
     The class that handles pure pursuit. 
 
     It is very important that the waypoints in file_waypoint (the .csv file) form a cycle. Otherwise in will do garbage. 
     look_head_distance had to be chosen based on the waypoints. See get_closest_way_point for more information about its use.
     """
+    look_head_distance = 1.5
+    kp = 1.2
+    file_waypoint = dirname(__file__) + "/../fichiers_csv/waypoints.csv"
+    VELOCITY = 1.5
     def __init__(self):
         rospy.Subscriber(topics.ODOMETRY, Odometry, self.pose_callback)
         self.drive_pub = rospy.Publisher(topics.DRIVE, AckermannDriveStamped, queue_size=1000)

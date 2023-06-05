@@ -7,7 +7,7 @@ from time import time
 
 class range_finding:
     """
-    Traite la donnée ranges de /scan pour fournir le gap optimal. This is the most costly step of reactive gap follow algorithm. 
+    Handles the ranges object to find the optimal gap. This is the most costly step of reactive gap follow algorithm. 
     """
     def __init__(self, ranges, desired_width):
         self.desired_width=desired_width

@@ -3,16 +3,15 @@ from math import radians, log
 class speed_computation:
     """
     Compute speed to prevent to go the fastest possible while avoiding emergency brakes. 
+
+    Args:
+        MAX_VELOCITY (float): Desired velocity if no obstacle and car going straigth
+        TURN_VELOCITY (float): Desired velocity when the car is turning with an angle teta>=V_HIGH_ANGLE
+        HIGH_ANGLE (float): For turn angle teta>=HIGH_ANGLE, the car is slowing down from MAX_VELOCITY to TURN_VELOCITY
+        V_HIGH_ANGLE (float): For turn angle teta>=V_HIGH_ANGLE is at speed TURN_VELOCITY
+        DECELARATION_POWER (float): Constant used for the computation of deceleration based on distance
     """
     def __init__(self, max_velocity, turn_velocity, deceleration_dist=1.0, high_angle=radians(30), v_high_angle=radians(20), deceleration_power=0.5):
-        """
-        Args:
-            MAX_VELOCITY (float): Desired velocity if no obstacle and car going straigth
-            TURN_VELOCITY (float): Desired velocity when the car is turning with an angle teta>=V_HIGH_ANGLE
-            HIGH_ANGLE (float): For turn angle teta>=HIGH_ANGLE, the car is slowing down from MAX_VELOCITY to TURN_VELOCITY
-            V_HIGH_ANGLE (float): For turn angle teta>=V_HIGH_ANGLE is at speed TURN_VELOCITY
-            DECELARATION_POWER (float): Constant used for the computation of deceleration based on distance
-        """
         # data from test:
         self.REF_MAX_VELOCITY = 2.5 # for deceleration_power = 0.5
         self.MAX_VELOCITY=max_velocity
@@ -25,7 +24,7 @@ class speed_computation:
     def speed(self, angle, dist):
         """
         Computes desired speed. 
-        
+
         The racecar slows down when steering and when it is close to an obstacle. 
 
         Args:
