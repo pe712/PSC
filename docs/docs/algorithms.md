@@ -61,28 +61,28 @@ roslaunch gmapping slam_gmapping_pr2.launch scan:=/scan
 roslaunch gmapping slam_gmapping_pr2.launch 
 ```
 
-When done you can download it (it downloads by default in current directory)
+When done you can download it (it downloads by default in current directory).
 ```
 rosrun map_server map_saver -f circuit
 ```
 
-You can then see it with
+You can then see it with:
 ```
 rosrun f1tenth_simulator waypoint_logger.py show-circuit.pgm
 ```
 Waypoint_logger has been designed to show both P2 (ASCII) and P5 (binary) .pgm files.
 If you have recorded any waypoints earlier in fichiers_csv/waypoints.csv, they will appear and the map and may be not relevant. The plot is automatically saved in fichiers_csv.
 
-## waypoints
-You can see waypoints on a map `map_example.pgm` with
+## Waypoints
+You can see waypoints on a map `map_example.pgm` with:
 ```
 rosrun f1tenth_simulator waypoint_logger.py show-map_example.pgm
 ```
-You can select some waypoints among them with (replace start and end by indices of waypoints)
+You can select some waypoints among them with (replace start and end by indices of waypoints):
 ```
 rosrun f1tenth_simulator waypoint_logger.py truncate-start-end
 ``` 
-A copy of waypoints.csv is saved and then the file is modified to keep only waypoints between start and end
+A copy of waypoints.csv is saved and then the file is modified to keep only waypoints between start and end.
 
 To record waypoints, run:
 ```
@@ -91,12 +91,13 @@ rosrun f1tenth_simulator waypoint_logger.py record
 While recording, you can move your car to create a trajectory (with teleop for example or another navigation node).
 
 ## Localization
-Gmapping is doing SLAM. But to be more efficient when the map is created, you can use particle filters algo to localize only the car.
-Change map in particle_filter/launch/map_server.launch
+Gmapping is doing SLAM. But to be more efficient when the map is created, you can use particle filters algo to localize only the car. Similarly to Gmapping, you can clone particle filters from [here](https://github.com/mit-racecar/particle_filter) (I suggest you to watch their demo video, it is very impressive).
+
+First, change the map in particle_filter/launch/map_server.launch to load the map of the current racing environnement. 
 ```
 roslaunch particle_filter localize.launch
 ```
-The pose estimate is exported in live to pf/pose/odom
+The pose estimate is exported in live to pf/pose/odom.
 
 ## Planning
 You need to have recorded waypoints previously. You can also place waypoints one by one but it will be quite long.
