@@ -16,17 +16,19 @@ SIMULATION = True
 ```
 Obviously, this file is not in our repo to not be copied from a computer to the racecar.
 
-
-## Reactive method
-You can run to make a navigation with follow_the_gap or wall_following methods.
+# Running a reactive method
+You can run this to make a navigation with follow_the_gap or wall_following methods.
 ```
 rosrun f1tenth_simulator reactive_gap_follow.py
 ```
-Or
+Or this
 ```
 rosrun f1tenth_simulator wall_following.py
 ```
+Each of those methods stands alone.
 
+# Running the planned method
+You will need to create a map of the racing environnement, then record waypoints and finally launch a planning algorithm with localization on.
 ## Mapping
 We use the gmapping package that you can clone from [here](https://github.com/ros-perception/slam_gmapping). You will also need to compile the catkin etc...
 That will localize the car in a map it is creating (SLAM).
@@ -55,36 +57,37 @@ You can then see it with
 rosrun f1tenth_simulator waypoint_logger.py show-circuit.pgm
 ```
 Waypoint_logger has been designed to show both P2 (ASCII) and P5 (binary) .pgm files.
-If you have recorded any waypoints earlier in fichiers_csv/waypoints.csv, they will appear and the map and may be not relevant. The plot is automatically saved in fichiers_csv
+If you have recorded any waypoints earlier in fichiers_csv/waypoints.csv, they will appear and the map and may be not relevant. The plot is automatically saved in fichiers_csv.
 
 ## waypoints
-You can see waypoints on a map map.pgm with
+You can see waypoints on a map `map_example.pgm` with
 ```
-rosrun f1tenth_simulator waypoint_logger.py show-circuit.pgm
+rosrun f1tenth_simulator waypoint_logger.py show-map_example.pgm
 ```
-You can select some of them with (replace start and end by indices of waypoints)
+You can select some waypoints among them with (replace start and end by indices of waypoints)
 ```
 rosrun f1tenth_simulator waypoint_logger.py truncate-start-end
 ``` 
-The waypoints.csv is saved and then modified to keep only waypoints between start and end
+A copy of waypoints.csv is saved and then the file is modified to keep only waypoints between start and end
 
 To record waypoints
 ```
 rosrun f1tenth_simulator waypoint_logger.py record
 ``` 
+Will recording you can move your car (with teleop for example or another navigation node).
 
 ## Localization
-Gmapping is doing SLAM. But to be more efficient when the map is created, you can use particle filters algo to localize the car.
+Gmapping is doing SLAM. But to be more efficient when the map is created, you can use particle filters algo to localize only the car.
 Change map in particle_filter/launch/map_server.launch
 ```
 roslaunch particle_filter localize.launch
 ```
-exporting to pf/pose/odom
+The pose estimate is exported in live to pf/pose/odom
 
 ## Planning
+You need to have recorded waypoints previously
 ```
-rosrun f1tenth pure pursuit
-
+rosrun f1tenth pure_pursuit
 ```
 
 
