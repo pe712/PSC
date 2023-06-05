@@ -4,7 +4,7 @@ This page explains how to run the racecar. You will need to have your computer, 
 
 # Remote computer settings
 * Connect your remote computer to the configured wifi (ask mainteners for password)
-* configure environnement variables
+* Configure environnement variables
 ```sh
 nano ~/.bashrc
 ```
@@ -20,7 +20,9 @@ source ~/.bashrc
 
 
 * Open a roscore
+
 You can decide wether you want the roscore to be on the car or on the remote computer. You need to adjust the environnement variables accordingly. For the purpose of this tutorial, we decided to have the roscore on the car. Like this you can monitor the car with graphics (like [rqt](http://wiki.ros.org/rqt) for example).
+
 Run
 ```sh
 roscore
@@ -30,6 +32,7 @@ roscore
 
 * Turn on the car. There is two buttons to press.
 * ssh to the car
+
 This is the ssh config:
 ```
 Host f1tenth_car_2
@@ -37,7 +40,7 @@ Host f1tenth_car_2
   User nvidia
 ```
 
-* configure environnement variables
+* Configure environnement variables
 ```sh
 nano ~/.bashrc
 ```
@@ -52,6 +55,7 @@ source ~/.bashrc
 ```
 
 * launch the f1tenth_system
+
 Run:
 ```sh
 roslaunch racecar teleop.launch
@@ -59,7 +63,7 @@ roslaunch racecar teleop.launch
 
 # Conclusion
 
-You can now copy some nodes and the racecar and run them:
+You can now add some nodes and the racecar and run them:
 ```sh
 rosrun mypackage mynode
 ```
