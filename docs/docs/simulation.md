@@ -33,6 +33,3 @@ roslaunch f1tenth_simulator simulator.launch
 ## Manual control
 
 You can already control the car by pressing 'k' in terminal to activate the keyboard and then using 'wasd' and 'space' keys. You can go [here](https://f1tenth.readthedocs.io/en/stable/going_forward/simulator/sim_use.html) for more basic informations.
-
-git clone the repo
-switcher.py

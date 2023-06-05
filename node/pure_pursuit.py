@@ -16,7 +16,7 @@ from ackermann_msgs.msg import AckermannDriveStamped
 from nav_msgs.msg import Odometry
 
 
-
+# inheritance from object is not necessary in python >=3 and may not be in our case with python 2.
 class PurePursuit(object):
     """
     The class that handles pure pursuit. 
