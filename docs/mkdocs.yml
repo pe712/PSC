@@ -11,16 +11,16 @@ nav:
     - Bringup: bringup.md
     - Rosbags: rosbags.md
     - Main classes: 
-      - AEB: nodes/AEB.md
-      - Pure_pursuit:
-      - Range_finding:
-      - Reactive_gap_follow:
-      - Speed:
-      - Switcher: 
-      - Switching_params:
-      - Utils: nodes/utils.md
-      - Wall_following: 
-      - Waypoint_logger: 
+      - AEB: node/AEB.md
+      - Pure_pursuit: node/pure_pursuit.md
+      - Range_finding: node/pange_finding.md
+      - Reactive_gap_follow: node/teactive_gap_follow.md
+      - Speed: node/speed.md
+      - Switcher: node/switcher.md
+      - Switching_params: node/switching_params.md
+      - Utils: node/utils.md
+      - Wall_following: node/wall_following.md
+      - Waypoint_logger: node/waypoint_logger.md
 
 # mkdocstring python library is for python >= 3
 plugins:
