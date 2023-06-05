@@ -4,7 +4,10 @@ from switcher import SIMULATION
 
 class topics:
     """
-    Lists every topic used as class parameters and set it to the right value depending on the context (simulation or experimental).
+    Lists every topic used by ros and set them to the right value depending on the context (simulation or experimental).
+
+    Attributes:
+        topic_example (str): topic
     """
     LIDARSCAN = '/scan'
     CLOSEST_OBSTACLE = '/closest_obstacle'

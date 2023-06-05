@@ -4,7 +4,7 @@ Take the time to go step by step. Otherwise you won't be able to determine which
 
 # Setting up a unix OS
 
-If your machine is running on a unix distribution (linux or MacOS for example) you can skip this step.
+If your machine is running on a unix distribution (linux or MacOS for example) you can skip this step and go to ROS installation.
 
 If your machine is a windows you have several options to set up a unix OS:
 

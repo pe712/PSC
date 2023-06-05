@@ -14,11 +14,14 @@ from switching_params import topics
 from switcher import SIMULATION
 
 class AEB:
-    """Automatic emergency brake (AEB)
-    Attribute:
-    This class is intended to stop the car when it is too close to an obstacle.
-    It relies on the computation of the time to collision (TTC) in every direction to decide whether to stop.
-    Depending on the speed of the car and the environment, you should modify parameters MINIMUM_TTC (minimum time to collision allowed) and MINIMUM_DISTANCE (minimum distance to the closest obstacle).
+    """
+    Automatic emergency brake (AEB)
+
+    This class is intended to stop the car when it is too close to an obstacle. It relies on the computation of the time to collision (TTC) in every direction to decide whether to stop.
+    
+    Attributes:
+        MINIMUM_TTC (float): Minimum time to collision allowed.
+        MINIMUM_DISTANCE (float): Minimum distance to the closest obstacle.
     """
 
     MINIMUM_TTC = 0.22  # in sec
