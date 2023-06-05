@@ -94,12 +94,12 @@ class PurePursuit(object):
     def pose_callback(self, pose_msg):
         """
         Callback function for the Pose message.
-        
+
         This function will :
         - determine target waypoint using get_closest_way_point
         - compute the steering angle (for details about that computation i suggest that you check the pure pursuit section of https://f1tenth.org/learn.html)
         - publish the drive message using publish_drive_msg
-        
+
         Args:
             pose_msg (Pose): Pose message
         """

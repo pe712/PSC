@@ -12,9 +12,28 @@ from re import search
 from tf2_ros import Buffer, TransformListener
 from tf2_geometry_msgs import do_transform_pose
 
+"""
+This file is usefull to record waypoints while running the racecar, to keep only usefull waypoints to have a cycle, and to see the waypoints with a .PGM map as background.
 
-# ___________________________________ Lecture de l'image PGM ___________________________________
-def plot_fig(map_pathname):
+To see how to use this node try 'rosrun waypoint_logger.py' to have further explanation.
+"""
+
+
+default_waypoints_filepath = "/home/pe/catkin_ws/src/f1tenth_simulator/fichiers_csv/waypoints.csv"
+def plot_fig(map_pathname, waypoints_file=default_waypoints_filepath):
+    """
+    Reads and plots the image from a PGM file. Plots on the same figure the waypoints.
+
+    The PGM file can be encoded as P2 (ascii) or P5 (binary).
+
+    Args:
+        map_pathname (str): Path to the PGM file.
+        waypoints_file (str, optionnal): Path to the waypoints csv file.
+
+    Returns:
+        None
+    """
+
     image = np.zeros((0,0))
     width, height = 0,0
     # show the map img
@@ -74,7 +93,7 @@ def plot_fig(map_pathname):
     # Lecture des coordonnees
     coords=np.array((0, 2))
     try:
-        coords = np.loadtxt("/home/pe/catkin_ws/src/f1tenth_simulator/fichiers_csv/waypoints.csv", delimiter=",", usecols=(0, 1))
+        coords = np.loadtxt(waypoints_file, delimiter=",", usecols=(0, 1))
     except IOError:
         # file do not exist yet
         pass
@@ -88,8 +107,17 @@ def plot_fig(map_pathname):
     plt.savefig(node_directory+"/../fichiers_csv/waypoints.png")
     plt.show()
 
-# ___________________________________ Enregistrement du fichier csv apres avoir parcouru le circuit avec la voiture ___________________________________
 def save_waypoint(data):
+    """
+    Callback function of Pose messsages to save waypoints in the CSV file. Extract (x,y,orientation,speed) in map frame.
+
+    Args:
+        data (Odometry): Odometry data.
+
+    Returns:
+        None
+    """
+
     # transform = tfBuffer.lookup_transform("odom", "map", data.header.stamp)
     # pose_transformed = do_transform_pose(data.pose, transform)
     # print(pose_transformed.pose.position.x, data.pose.pose.position.x)
@@ -115,8 +143,17 @@ def listener():
     rospy.Subscriber('pf/pose/odom', Odometry, save_waypoint)
     rospy.spin()
 
-# ___________________________________ Conserver uniquement les waypoints utiles ___________________________________
 def tronque_boucle_csv(start, end):
+    """
+    Truncates the waypoint CSV file to keep only the desired range of waypoints [start:end].
+
+    Args:
+        start (int): Start index of the waypoints to keep.
+        end (int): End index of the waypoints to keep.
+
+    Returns:
+        None
+    """
     print("truncating...")
     with open(node_directory+'/../fichiers_csv/waypoints.csv', 'r') as f:
         lines = f.readlines()
@@ -127,6 +164,7 @@ def tronque_boucle_csv(start, end):
     rename(node_directory+'/../fichiers_csv/truncated_waypoints.csv', node_directory+'/../fichiers_csv/waypoints.csv')
 
 
+default_waypoints_filename = 'waypoints.csv'
 if __name__ == '__main__':
     node_directory = dirname(__file__)
     ui_msg="The only arguments allowed are 'record' 'truncate-start-stop' and 'show-map_filename'\nExamples\n./waypoint_logger.py record\n./waypoint_logger.py show-circuit.pgm\n./waypoint_logger.py truncate-57-230"
@@ -139,7 +177,7 @@ if __name__ == '__main__':
             rospy.init_node('waypoints_logger', anonymous=True)
             # tfBuffer = Buffer()
             # tf_listener = TransformListener(tfBuffer) 
-            with open(node_directory+'/../fichiers_csv/waypoints.csv', 'w') as file:
+            with open(node_directory+'/../fichiers_csv'+default_waypoints_filename+'/', 'w') as file:
                 listener()
         elif args[0]=="show":
             map_filename = args[1]

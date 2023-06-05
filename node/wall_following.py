@@ -46,8 +46,7 @@ class WallFollow:
     prev_error = 0.0 
     integral = 0.0
     velocity = 0.0
-    """ Implement Wall Following on the car
-    """
+
     def __init__(self):
         #Topics & Subs, Pubs
         self.lidar_sub = rospy.Subscriber(topics.LIDARSCAN, LaserScan, self.lidar_callback)

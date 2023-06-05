@@ -27,11 +27,39 @@ else:
     BARRIER_WIDTH = CAR_WIDTH*1.8
 
 class reactive_follow_gap:
-    MAX_VELOCITY = 3.5 # Desired maximum velocity in meters per second
+    """
+    Reactive Follow Gap class that implements the reactive gap following algorithm.
+
+    This class subscribes to the LiDAR scan data and performs the reactive gap following algorithm
+    to find the best steering angle based on the available gaps in the LiDAR data. It publishes the
+    corresponding drive command with the desired steering angle and speed.
+
+    Attributes:
+        MAX_VELOCITY (float): Desired maximum velocity in meters per second.
+        TURN_VELOCITY (float): Velocity for turning in meters per second.
+        GAP_DISTANCE (float): Distance in meters between consecutive LiDAR beams to consider there is an edge.
+        MAX_DISTANCE (float): The maximum possible distance in the map, where greater is considered an error.
+        MAX_ROT (float): The maximum rotation allowed to avoid going backward.
+        DIST_FROM_LIDAR (float): Distance from the LiDAR sensor to the base link of the car.
+        lidar_sub (rospy.Subscriber): Subscriber for the LiDAR scan topic.
+        drive_pub (rospy.Publisher): Publisher for the drive command topic.
+        odom_sub (rospy.Subscriber): Subscriber for the odometry topic.
+        closest_obstacle_sub (rospy.Subscriber): Subscriber for the closest obstacle distance topic.
+        speed (speed_computation): Object for calculating the speed based on the desired velocity.
+        processed_ranges_pub (rospy.Publisher): Publisher for the processed LiDAR ranges topic (simulation only).
+        target_point_pub (rospy.Publisher): Publisher for the target point visualization marker topic (simulation only).
+        edgePub (rospy.Publisher): Publisher for the edge visualization markers topic (simulation only).
+        x (float): X-coordinate of the car's position from the odometry.
+        y (float): Y-coordinate of the car's position from the odometry.
+        angle (float): Orientation angle of the car from the odometry.
+        dist_closest_obstacle (float): Closest obstacle distance from the closest obstacle topic.
+    """
+
+    MAX_VELOCITY = 3.5
     TURN_VELOCITY = 2.5
-    GAP_DISTANCE = 0.5 # Distance in meters between consecutive lidar beams to consider there is an edge here
-    MAX_DISTANCE = 40 # The maximum possible distance in the map, greater is an error
-    MAX_ROT = pi/3 #the maximum rotation allowed to avoid going backward
+    GAP_DISTANCE = 0.5
+    MAX_DISTANCE = 40 
+    MAX_ROT = pi/3
     DIST_FROM_LIDAR = rospy.get_param("f1tenth_simulator/scan_distance_to_base_link", 0.0)
     n=0
     def __init__(self):
@@ -43,18 +71,22 @@ class reactive_follow_gap:
         self.closest_obstacle_sub = rospy.Subscriber(topics.CLOSEST_OBSTACLE, Float64, self.callback_closest_obstacle)
         self.speed = speed_computation(self.MAX_VELOCITY, self.TURN_VELOCITY)
         if SIMULATION:
-            self.processed_ranges = rospy.Publisher("/processedRanges", LaserScan, queue_size=100)
+            self.processed_ranges_pub = rospy.Publisher("/processedRanges", LaserScan, queue_size=100)
             self.target_point_pub = rospy.Publisher('/target_point', Marker, queue_size=40)
             self.edgePub = rospy.Publisher('/edges_array', MarkerArray, queue_size=40)
-        """ Should use this instead of doing tf manually
-        self.tfBuffer = Buffer()
-        self.tf_listener = TransformListener(self.tfBuffer) 
-        """
 
     def preprocess_lidar(self, data):
-        """ Preprocess the LiDAR scan array. Expert implementation includes:
-            1.Setting each value to the mean over some window
-            2.Rejecting high values (eg. > 3m)
+        """
+        Preprocesses the LiDAR scan array.
+        Rejects high values of lidar given MAX_DISTANCE treshold.
+        Keeps only an angle of 2*self.MAX_ROT ahead of the racecar to avoid going backwards.
+        Modifies ranges to create barriers for edge avoidance.
+
+        Args:
+            data (sensor_msgs.msg.LaserScan): LiDAR scan data.
+
+        Returns:
+            list: Processed LiDAR ranges.
         """
         # those are for heading to (finding the target point)
         self.start_i = int((-self.MAX_ROT-data.angle_min)/data.angle_increment)
@@ -85,11 +117,20 @@ class reactive_follow_gap:
         return ranges
 
     def avoid_edge(self, ranges, edges_to_avoid, data):
-        """Modifies ranges to create a barrier to be avoided
+        """
+        Modifies the LiDAR ranges to create barriers to be avoided.
+
+        This method modifies the LiDAR ranges based on the detected edges to create barriers to be avoided. In particular, this function handle overlapping of barriers.
+
+        If in simulation, this function publishes arrow Marker_array corresponding to the barriers.
+
+        Args:
+            ranges (list): LiDAR ranges.
+            edges_to_avoid (list): List of edges to avoid, including their start index, edge sign, angle, and distance.
+            data (sensor_msgs.msg.LaserScan): LiDAR scan data.
         """
         X_from, Y_from, X_to, Y_to = [], [], [], []
-        n = len(edges_to_avoid)
-        for count, (start, edge_sign, angle_start, dist) in enumerate(edges_to_avoid):
+        for (start, edge_sign, angle_start, dist) in edges_to_avoid:
             width_increment = dist * tan(data.angle_increment)
             if width_increment==0:
                 index_increment = edge_sign # au moins 1
@@ -113,19 +154,23 @@ class reactive_follow_gap:
         if SIMULATION:
             simple_markers.create_arrow(X_from, Y_from, X_to, Y_to, self.edgePub)
 
-    def find_max_gap(self, ranges, data):
-        """ Return the start index & end index of the max gap in ranges
-        It will look for the deepest gap with a width of at least the car
-        """
-        return self.start_i, self.stop_i
-
     def find_best_angle(self, ranges, data):
-        """ Return index of best angle
-	    Naive: Choose the furthest point within ranges and go there
         """
-        start, stop = self.find_max_gap(ranges, data)
-        best_index = start
-        for k in range(start, stop):
+        Finds the best steering angle based on the LiDAR ranges.
+
+        This method finds the best steering angle by choosing the furthest point in the LiDAR ranges. There is no need to take margins because the barriers created in ranges already take safety into account.
+
+        If in simulation, publishes the processed ranges as a Laserscan message and the traget point as a Marker.
+
+        Args:
+            ranges (list): LiDAR ranges.
+            data (Odometry): callback message of Odometry subscriber.
+
+        Returns:
+            float: Best steering angle.
+        """
+        best_index = self.start_i
+        for k in range(self.start_i, self.stop_i):
             if ranges[k]>ranges[best_index]:
                 best_index = k
         # best_index, dist = max(enumerate(ranges[start:stop]), key=lambda x: x[1])
@@ -134,7 +179,7 @@ class reactive_follow_gap:
         if SIMULATION:
             msg = LaserScan()
             msg.ranges = ranges
-            self.processed_ranges.publish(msg)
+            self.processed_ranges_pub.publish(msg)
             if hasattr(self, 'x'):
                 x = self.x + ranges[best_index]*cos(angle_to_drive+self.angle) + self.DIST_FROM_LIDAR*cos(self.angle)
                 y = self.y + ranges[best_index]*sin(angle_to_drive+self.angle) + self.DIST_FROM_LIDAR*sin(self.angle)
@@ -142,6 +187,13 @@ class reactive_follow_gap:
         return angle_to_drive, ranges[best_index]
 
     def publish_drive_msg(self, angle, dist):
+        """
+        Publishes the drive command message with the desired steering angle.
+
+        Args:
+            angle (float): Desired steering angle.
+            dist (float): Distance from the racecar to the traget point.
+        """
         drive_msg = AckermannDriveStamped()
         drive_msg.header.stamp = rospy.Time.now()
         drive_msg.header.frame_id = "laser"
@@ -152,23 +204,34 @@ class reactive_follow_gap:
         self.drive_pub.publish(drive_msg)
 
     def callback_odom(self, data):
+        """
+        Callback function for the odometry. It updates the car's position and orientation attributes.
+
+        Args:
+            data (nav_msgs.msg.Odometry): Odometry data.
+        """
         self.x = data.pose.pose.position.x
         self.y = data.pose.pose.position.y
         o = data.pose.pose.orientation
         self.angle = euler_from_quaternion([o.x, o.y, o.z, o.w])[2]
 
-        """ transform = self.tfBuffer.lookup_transform("map", data.header.frame_id, data.header.stamp, rospy.Duration(1))
-        pose_transformed = do_transform_pose(data.pose, transform)
-        self.x = data.pose.pose.position.x
-        self.y = data.pose.pose.position.y
-        o = data.pose.pose.orientation
-        self.angle = euler_from_quaternion([o.x, o.y, o.z, o.w])[2] """
+        # if not in the frame 'map'
+        # transform = self.tfBuffer.lookup_transform("map", data.header.frame_id, data.header.stamp, rospy.Duration(1))
+        # pose_transformed = do_transform_pose(data.pose, transform)
+        # self.x = data.pose.pose.position.x
+        # self.y = data.pose.pose.position.y
+        # o = data.pose.pose.orientation
+        # self.angle = euler_from_quaternion([o.x, o.y, o.z, o.w])[2] 
 
     def callback_closest_obstacle(self, data):
         self.dist_closest_obstacle = data.data
 
     def lidar_callback(self, data):
-        """ Process each LiDAR scan as per the Follow Gap algorithm & publish an AckermannDriveStamped Message
+        """
+        Callback function for the LiDAR scan. It preprocesses the LiDAR ranges, determines the best steering angle, and publishes the drive command message with the desired steering angle.
+
+        Args:
+            data (sensor_msgs.msg.LaserScan): LiDAR scan data.
         """
         if self.n==0:
             self.n=0

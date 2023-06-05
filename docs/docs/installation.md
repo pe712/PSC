@@ -11,13 +11,13 @@ I suggest that you use WSL in order to simulate a linux VM on a windows computer
 I suggest you use the official wiki [here](http://wiki.ros.org/melodic/Installation/Ubuntu). Go through each step carefully. It can take some time.
 You should check that your ROS installation is correct by executing some basic commands such as `roscd`.
 
-At that point you can start using ROS and looking for some ROS basic tutorials such as [these](http://wiki.ros.org/tf/Tutorials). However, you do not have any graphic ressources (you cannot use gazebo or rviz).
+At that point you can start using ROS and looking for some ROS basic tutorials such as [these](http://wiki.ros.org/tf/Tutorials). However, you do not have any graphic ressources (you cannot use rviz).
 
 # Installing graphics
 
 As you are on windows you need to get the graphics of the WSL and display it. For this you need to download a X-launch. This can be a painful step because it can depends on many parameters. After a lot of different tries, we came up with a solution that works on all our computers.
 
-I suggest then that you use [vcxsrv](https://sourceforge.net/projects/vcxsrv/). And you need to set some parameters: `disable native opengl`. Otherwise it do not work.
+I suggest then that you use [vcxsrv](https://sourceforge.net/projects/vcxsrv/). And you need to set the parameter: `disable native opengl`. Otherwise it do not work.
 
 
 # Setting up `.bashrc`

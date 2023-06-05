@@ -9,11 +9,18 @@ nav:
     - Home: index.md
     - Installation: installation.md
     - Bringup: bringup.md
-    - PurePursuit: purepursuit.md
     - Rosbags: rosbags.md
     - Main classes: 
-      - AEB: AEB.md
-      - utils: utils.md
+      - AEB: nodes/AEB.md
+      - Pure_pursuit:
+      - Range_finding:
+      - Reactive_gap_follow:
+      - Speed:
+      - Switcher: 
+      - Switching_params:
+      - Utils: nodes/utils.md
+      - Wall_following: 
+      - Waypoint_logger: 
 
 # mkdocstring python library is for python >= 3
 plugins:

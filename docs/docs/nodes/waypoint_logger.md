@@ -1,0 +1,1 @@
+:::node.waypoint_logger
